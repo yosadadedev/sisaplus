@@ -59,7 +59,7 @@ export default function LoginScreen({ navigation }: any) {
   if (!initialized) {
     return (
       <SafeAreaView className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#0ea5e9" />
+        <ActivityIndicator size="large" color="#22c55e" />
         <Text className="mt-4 text-gray-600">Memuat...</Text>
       </SafeAreaView>
     )
