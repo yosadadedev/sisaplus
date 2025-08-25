@@ -14,6 +14,8 @@ interface AuthState {
   // Actions
   initialize: () => Promise<void>
   signInWithGoogle: () => Promise<{ error: any }>
+  signInWithEmail: (email: string, password: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<void>
   setExpoPushToken: (token: string) => Promise<void>
@@ -81,6 +83,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { error }
     } catch (error) {
       console.error('Sign in error:', error)
+      return { error }
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  signInWithEmail: async (email: string, password: string) => {
+    try {
+      set({ loading: true })
+      const { data, error } = await supabaseHelpers.signInWithEmail(email, password)
+      return { error }
+    } catch (error) {
+      console.error('Sign in with email error:', error)
+      return { error }
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  signUp: async (email: string, password: string, fullName: string) => {
+    try {
+      set({ loading: true })
+      const { data, error } = await supabaseHelpers.signUp(email, password, fullName)
+      return { error }
+    } catch (error) {
+      console.error('Sign up error:', error)
       return { error }
     } finally {
       set({ loading: false })

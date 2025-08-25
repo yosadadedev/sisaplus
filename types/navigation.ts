@@ -6,6 +6,7 @@ import { CompositeNavigationProp, RouteProp } from '@react-navigation/native'
 export type RootStackParamList = {
   Onboarding: undefined
   Login: undefined
+  Register: undefined
   MainTabs: undefined
   FoodDetail: { foodId: string }
 }

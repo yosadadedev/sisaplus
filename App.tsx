@@ -12,6 +12,7 @@ import './global.css'
 // Screens
 import OnboardingScreen from './screens/OnboardingScreen'
 import LoginScreen from './screens/LoginScreen'
+import RegisterScreen from './screens/RegisterScreen'
 import HomeScreen from './screens/HomeScreen'
 import FoodDetailScreen from './screens/FoodDetailScreen'
 import AddFoodScreen from './screens/AddFoodScreen'
@@ -172,8 +173,9 @@ export default function App() {
           <>
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
           </>
-        ) : !user ? (
+        ) : user ? (
           // Authenticated stack
           <>
             <Stack.Screen name="MainTabs" component={MainTabs} />
@@ -188,7 +190,10 @@ export default function App() {
           </>
         ) : (
           // Unauthenticated stack
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
