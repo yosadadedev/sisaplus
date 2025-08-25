@@ -141,6 +141,7 @@ export default function App() {
         unsubscribeBookings()
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // Loading screen
@@ -164,7 +165,7 @@ export default function App() {
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
           </>
-        ) : user ? (
+        ) : !user ? (
           // Authenticated stack
           <>
             <Stack.Screen name="MainTabs" component={MainTabs} />
