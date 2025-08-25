@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuthStore } from '../store/authStore'
+import Logo from '../components/Logo'
 import { Ionicons } from '@expo/vector-icons'
 
 export default function LoginScreen({ navigation }: any) {
@@ -75,9 +76,7 @@ export default function LoginScreen({ navigation }: any) {
           <View className="flex-1 justify-center px-6 py-8">
             {/* Logo and Title */}
             <View className="items-center mb-8">
-              <View className="w-20 h-20 bg-primary-500 rounded-full justify-center items-center mb-4 shadow-lg">
-                <Ionicons name="restaurant" size={32} color="white" />
-              </View>
+              <Logo size={96} className="mb-4" />
               
               <Text className="text-3xl font-bold text-gray-800 mb-2">
                 Sisa Plus

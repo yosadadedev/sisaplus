@@ -1,0 +1,120 @@
+<svg width="1284" height="2778" viewBox="0 0 1284 2778" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fee2e2;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#7f1d1d" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1284" height="2778" fill="url(#bgGradient)"/>
+  
+  <!-- Decorative Food Elements -->
+  <!-- Top Left Food Icons -->
+  <g opacity="0.1">
+    <circle cx="150" cy="400" r="30" fill="white"/>
+    <circle cx="200" cy="350" r="20" fill="white"/>
+    <circle cx="100" cy="500" r="25" fill="white"/>
+  </g>
+  
+  <!-- Top Right Food Icons -->
+  <g opacity="0.1">
+    <circle cx="1150" cy="450" r="35" fill="white"/>
+    <circle cx="1100" cy="380" r="15" fill="white"/>
+    <circle cx="1200" cy="520" r="28" fill="white"/>
+  </g>
+  
+  <!-- Bottom Left Food Icons -->
+  <g opacity="0.1">
+    <circle cx="120" cy="2200" r="32" fill="white"/>
+    <circle cx="180" cy="2150" r="18" fill="white"/>
+    <circle cx="80" cy="2300" r="22" fill="white"/>
+  </g>
+  
+  <!-- Bottom Right Food Icons -->
+  <g opacity="0.1">
+    <circle cx="1180" cy="2250" r="28" fill="white"/>
+    <circle cx="1120" cy="2180" r="20" fill="white"/>
+    <circle cx="1220" cy="2320" r="25" fill="white"/>
+  </g>
+  
+  <!-- Main Logo Container -->
+  <g transform="translate(642, 1389)">
+    <!-- Logo Background Circle -->
+    <circle cx="0" cy="0" r="180" fill="url(#iconGradient)" filter="url(#shadow)"/>
+    
+    <!-- Restaurant/Food Icon -->
+    <g transform="translate(0, 0)">
+      <!-- Plate -->
+      <circle cx="0" cy="20" r="80" fill="#ef4444" stroke="#dc2626" stroke-width="3"/>
+      
+      <!-- Fork -->
+      <g transform="translate(-45, -20)">
+        <rect x="-3" y="-40" width="6" height="80" fill="#dc2626" rx="3"/>
+        <rect x="-8" y="-35" width="4" height="15" fill="#dc2626" rx="2"/>
+        <rect x="-2" y="-35" width="4" height="15" fill="#dc2626" rx="2"/>
+        <rect x="4" y="-35" width="4" height="15" fill="#dc2626" rx="2"/>
+      </g>
+      
+      <!-- Spoon -->
+      <g transform="translate(45, -20)">
+        <rect x="-3" y="-40" width="6" height="80" fill="#dc2626" rx="3"/>
+        <ellipse cx="0" cy="-25" rx="12" ry="18" fill="#dc2626"/>
+      </g>
+      
+      <!-- Food on Plate -->
+      <circle cx="-15" cy="15" r="12" fill="#fca5a5"/>
+      <circle cx="15" cy="10" r="10" fill="#fca5a5"/>
+      <circle cx="0" cy="25" r="8" fill="#fca5a5"/>
+    </g>
+  </g>
+  
+  <!-- App Name -->
+  <g transform="translate(642, 1650)">
+    <text x="0" y="0" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="bold" fill="white">
+      Sisa Plus
+    </text>
+    <text x="0" y="60" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="400" fill="#fee2e2">
+      Berbagi Makanan, Berbagi Kebaikan
+    </text>
+  </g>
+  
+  <!-- Loading Animation Dots -->
+  <g transform="translate(642, 1850)">
+    <circle cx="-30" cy="0" r="8" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+    </circle>
+    <circle cx="0" cy="0" r="8" fill="white" opacity="0.6">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <circle cx="30" cy="0" r="8" fill="white" opacity="0.4">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+  </g>
+  
+  <!-- Floating Food Elements with Animation -->
+  <g opacity="0.15">
+    <!-- Animated floating elements -->
+    <circle cx="300" cy="800" r="15" fill="white">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 0,-20; 0,0" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="950" cy="900" r="18" fill="white">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 0,15; 0,0" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="200" cy="1800" r="12" fill="white">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 0,-10; 0,0" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1050" cy="1900" r="20" fill="white">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 0,25; 0,0" dur="3.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

@@ -17,14 +17,14 @@
     ],
 
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.svg",
 
     "userInterfaceStyle": "light",
 
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ef4444"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {

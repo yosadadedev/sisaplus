@@ -22,11 +22,67 @@ import { MyOrdersScreenNavigationProp } from '../types/navigation'
 type TabType = 'donations' | 'orders'
 
 interface BookingWithFood extends Omit<Booking, 'foods'> {
-  foods?: Omit<Food, 'image_url'> & { image_url?: string | null }
+  foods?: {
+    id: string
+    title: string
+    description: string | null
+    category: string
+    quantity: number
+    unit: string
+    image_urls: string[] | null
+    pickup_location: unknown
+    pickup_address: string
+    pickup_time_start: string
+    pickup_time_end: string
+    expired_at: string
+    status: 'available' | 'booked' | 'completed' | 'expired' | 'cancelled'
+    dietary_info: string[] | null
+    allergen_info: string[] | null
+    preparation_notes: string | null
+    price_type: 'free' | 'paid'
+    price: number
+    is_featured: boolean
+    view_count: number
+    created_at: string
+    updated_at: string
+    donor_id: string
+    profiles?: {
+      full_name: string | null
+      avatar_url: string | null
+    }
+    distance_km?: number
+  }
 }
 
-interface FoodWithBookings extends Omit<Food, 'image_url'> {
-  image_url?: string | null
+interface FoodWithBookings {
+  id: string
+  title: string
+  description: string | null
+  category: string
+  quantity: number
+  unit: string
+  image_urls: string[] | null
+  pickup_location: unknown
+  pickup_address: string
+  pickup_time_start: string
+  pickup_time_end: string
+  expired_at: string
+  status: 'available' | 'booked' | 'completed' | 'expired' | 'cancelled'
+  dietary_info: string[] | null
+  allergen_info: string[] | null
+  preparation_notes: string | null
+  price_type: 'free' | 'paid'
+  price: number
+  is_featured: boolean
+  view_count: number
+  created_at: string
+  updated_at: string
+  donor_id: string
+  profiles?: {
+    full_name: string | null
+    avatar_url: string | null
+  }
+  distance_km?: number
   bookings?: Booking[]
 }
 
@@ -225,9 +281,9 @@ export default function MyOrdersScreen() {
         <View className="flex-row">
           {/* Food Image */}
           <View className="w-20 h-20 bg-gray-200 rounded-lg mr-3">
-            {food.image_url ? (
+            {food.image_urls && food.image_urls.length > 0 ? (
               <Image
-                source={{ uri: food.image_url }}
+                source={{ uri: food.image_urls[0] }}
                 className="w-full h-full rounded-lg"
                 resizeMode="cover"
               />
@@ -258,7 +314,7 @@ export default function MyOrdersScreen() {
             <View className="flex-row items-center mb-2">
               <Ionicons name="location" size={14} color="#6b7280" />
               <Text className="text-gray-500 text-sm ml-1" numberOfLines={1}>
-                {food.location}
+                {food.pickup_address}
               </Text>
             </View>
 
@@ -295,9 +351,9 @@ export default function MyOrdersScreen() {
         <View className="flex-row">
           {/* Food Image */}
           <View className="w-20 h-20 bg-gray-200 rounded-lg mr-3">
-            {food.image_url ? (
+            {food.image_urls && food.image_urls.length > 0 ? (
               <Image
-                source={{ uri: food.image_url }}
+                source={{ uri: food.image_urls[0] }}
                 className="w-full h-full rounded-lg"
                 resizeMode="cover"
               />
@@ -449,7 +505,7 @@ export default function MyOrdersScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {(myDonations as FoodWithBookings[]).map(renderDonationCard)}
+          {myDonations.map(renderDonationCard)}
         </ScrollView>
       )
     } else {
