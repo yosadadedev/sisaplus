@@ -16,6 +16,7 @@ import HomeScreen from './screens/HomeScreen'
 import FoodDetailScreen from './screens/FoodDetailScreen'
 import AddFoodScreen from './screens/AddFoodScreen'
 import MyOrdersScreen from './screens/MyOrdersScreen'
+import ProfileScreen from './screens/ProfileScreen'
 
 // Stores
 import { useAuthStore } from './store/authStore'
@@ -49,6 +50,8 @@ function MainTabs() {
             iconName = focused ? 'add-circle' : 'add-circle-outline'
           } else if (route.name === 'MyOrders') {
             iconName = focused ? 'list' : 'list-outline'
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline'
           } else {
             iconName = 'help-outline'
           }
@@ -86,6 +89,11 @@ function MainTabs() {
         name="MyOrders" 
         component={MyOrdersScreen} 
         options={{ tabBarLabel: 'Aktivitas' }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileScreen} 
+        options={{ tabBarLabel: 'Profil' }}
       />
     </Tab.Navigator>
   )
