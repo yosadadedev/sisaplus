@@ -1,0 +1,14 @@
+# Supabase Edge Functions (Deno environment)
+supabase/functions/**/*
+supabase/functions/send-push-notification/**/*
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+.expo/
+
+# Environment files
+.env*
