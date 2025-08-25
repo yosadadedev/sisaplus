@@ -246,7 +246,7 @@ export default function HomeScreen() {
             onPress={() => navigation.navigate('Profile')}
             className="w-10 h-10 bg-primary-100 rounded-full justify-center items-center"
           >
-            <Ionicons name="person" size={20} color="#22c55e" />
+            <Ionicons name="person" size={20} color="#ef4444" />
           </TouchableOpacity>
         </View>
 
