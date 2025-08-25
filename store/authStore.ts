@@ -15,7 +15,14 @@ interface AuthState {
   initialize: () => Promise<void>
   signInWithGoogle: () => Promise<{ error: any }>
   signInWithEmail: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>
+  signUp: (
+     email: string, 
+     password: string, 
+     fullName: string,
+     whatsapp?: string,
+     address?: string,
+     status?: string
+   ) => Promise<{ success: boolean; error?: string; data?: any }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<void>
   setExpoPushToken: (token: string) => Promise<void>
@@ -102,16 +109,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signUp: async (email: string, password: string, fullName: string) => {
+  signUp: async (
+     email: string, 
+     password: string, 
+     fullName: string,
+     whatsapp?: string,
+     address?: string,
+     status?: string
+   ) => {
+    set({ loading: true });
     try {
-      set({ loading: true })
-      const { data, error } = await supabaseHelpers.signUp(email, password, fullName)
-      return { error }
+      const { data, error } = await supabaseHelpers.signUp(
+         email, 
+         password, 
+         fullName,
+         whatsapp,
+         address,
+         status
+       );
+      if (error) {
+        console.error('Sign up error:', error);
+        return { success: false, error: error.message };
+      }
+      return { success: true, data };
     } catch (error) {
-      console.error('Sign up error:', error)
-      return { error }
+      console.error('Sign up error:', error);
+      return { success: false, error: 'Terjadi kesalahan saat mendaftar' };
     } finally {
-      set({ loading: false })
+      set({ loading: false });
     }
   },
 

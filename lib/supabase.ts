@@ -38,13 +38,23 @@ export const supabaseHelpers = {
     return { data, error }
   },
 
-  async signUp(email: string, password: string, fullName: string) {
+  async signUp(
+    email: string, 
+    password: string, 
+    fullName: string,
+    whatsapp?: string,
+    address?: string,
+    status?: string
+  ) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
+          whatsapp: whatsapp,
+          address: address,
+          status: status,
         },
       },
     })
