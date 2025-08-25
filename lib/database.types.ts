@@ -54,37 +54,52 @@ export interface Database {
       profiles: {
         Row: {
           id: string
-          full_name: string | null
+          email: string
+          full_name: string
           avatar_url: string | null
           phone: string | null
-          address: string | null
-          latitude: number | null
-          longitude: number | null
+          role: 'donor' | 'receiver' | 'admin'
           expo_push_token: string | null
+          location: unknown | null // PostGIS geography type
+          address: string | null
+          is_verified: boolean
+          rating: number
+          total_donations: number
+          total_received: number
           created_at: string
           updated_at: string
         }
         Insert: {
           id: string
-          full_name?: string | null
+          email: string
+          full_name: string
           avatar_url?: string | null
           phone?: string | null
-          address?: string | null
-          latitude?: number | null
-          longitude?: number | null
+          role?: 'donor' | 'receiver' | 'admin'
           expo_push_token?: string | null
+          location?: unknown | null
+          address?: string | null
+          is_verified?: boolean
+          rating?: number
+          total_donations?: number
+          total_received?: number
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          full_name?: string | null
+          email?: string
+          full_name?: string
           avatar_url?: string | null
           phone?: string | null
-          address?: string | null
-          latitude?: number | null
-          longitude?: number | null
+          role?: 'donor' | 'receiver' | 'admin'
           expo_push_token?: string | null
+          location?: unknown | null
+          address?: string | null
+          is_verified?: boolean
+          rating?: number
+          total_donations?: number
+          total_received?: number
           created_at?: string
           updated_at?: string
         }
@@ -95,15 +110,24 @@ export interface Database {
           id: string
           donor_id: string
           title: string
-          description: string
-          quantity: number
-          location: string
-          latitude: number
-          longitude: number
-          expired_at: string
-          image_url: string | null
+          description: string | null
           category: string
-          status: 'available' | 'booked' | 'completed' | 'expired'
+          quantity: number
+          unit: string
+          image_urls: string[] | null
+          pickup_location: unknown // PostGIS geography type
+          pickup_address: string
+          pickup_time_start: string
+          pickup_time_end: string
+          expired_at: string
+          status: 'available' | 'booked' | 'completed' | 'expired' | 'cancelled'
+          dietary_info: string[] | null
+          allergen_info: string[] | null
+          preparation_notes: string | null
+          price_type: 'free' | 'paid'
+          price: number
+          is_featured: boolean
+          view_count: number
           created_at: string
           updated_at: string
         }
@@ -111,15 +135,24 @@ export interface Database {
           id?: string
           donor_id: string
           title: string
-          description: string
-          quantity: number
-          location: string
-          latitude: number
-          longitude: number
-          expired_at: string
-          image_url?: string | null
+          description?: string | null
           category: string
-          status?: 'available' | 'booked' | 'completed' | 'expired'
+          quantity?: number
+          unit?: string
+          image_urls?: string[] | null
+          pickup_location: unknown
+          pickup_address: string
+          pickup_time_start: string
+          pickup_time_end: string
+          expired_at: string
+          status?: 'available' | 'booked' | 'completed' | 'expired' | 'cancelled'
+          dietary_info?: string[] | null
+          allergen_info?: string[] | null
+          preparation_notes?: string | null
+          price_type?: 'free' | 'paid'
+          price?: number
+          is_featured?: boolean
+          view_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -127,15 +160,24 @@ export interface Database {
           id?: string
           donor_id?: string
           title?: string
-          description?: string
-          quantity?: number
-          location?: string
-          latitude?: number
-          longitude?: number
-          expired_at?: string
-          image_url?: string | null
+          description?: string | null
           category?: string
-          status?: 'available' | 'booked' | 'completed' | 'expired'
+          quantity?: number
+          unit?: string
+          image_urls?: string[] | null
+          pickup_location?: unknown
+          pickup_address?: string
+          pickup_time_start?: string
+          pickup_time_end?: string
+          expired_at?: string
+          status?: 'available' | 'booked' | 'completed' | 'expired' | 'cancelled'
+          dietary_info?: string[] | null
+          allergen_info?: string[] | null
+          preparation_notes?: string | null
+          price_type?: 'free' | 'paid'
+          price?: number
+          is_featured?: boolean
+          view_count?: number
           created_at?: string
           updated_at?: string
         }

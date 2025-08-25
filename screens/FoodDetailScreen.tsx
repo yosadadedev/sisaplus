@@ -18,6 +18,7 @@ import { useFoodStore } from '../store/foodStore'
 import { useAuthStore } from '../store/authStore'
 import { formatDistanceToNow, format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { WebView } from 'react-native-webview'
 
 interface RouteParams {
   foodId: string
@@ -34,6 +35,8 @@ export default function FoodDetailScreen() {
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [bookingMessage, setBookingMessage] = useState('')
   const [bookingLoading, setBookingLoading] = useState(false)
+  const [showWebView, setShowWebView] = useState(false)
+  const [mapUrl, setMapUrl] = useState('')
 
   useEffect(() => {
     const foundFood = foods.find(f => f.id === foodId)
@@ -119,8 +122,9 @@ export default function FoodDetailScreen() {
       return
     }
 
-    const url = `https://maps.google.com/maps?daddr=${food.latitude},${food.longitude}`
-    Linking.openURL(url)
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${food.latitude},${food.longitude}`
+    setMapUrl(url)
+    setShowWebView(true)
   }
 
   const getStatusColor = (status: string) => {
@@ -413,6 +417,37 @@ export default function FoodDetailScreen() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Google Maps WebView Modal */}
+      <Modal
+        visible={showWebView}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView className="flex-1 bg-white">
+          <View className="flex-row items-center justify-between p-4 border-b border-gray-200">
+            <Text className="text-lg font-semibold text-gray-900">Rute ke Lokasi</Text>
+            <TouchableOpacity
+              onPress={() => setShowWebView(false)}
+              className="p-2"
+            >
+              <Ionicons name="close" size={24} color="#374151" />
+            </TouchableOpacity>
+          </View>
+          
+          <WebView
+            source={{ uri: mapUrl }}
+            style={{ flex: 1 }}
+            startInLoadingState={true}
+            renderLoading={() => (
+              <View className="flex-1 justify-center items-center">
+                <ActivityIndicator size="large" color="#22c55e" />
+                <Text className="text-gray-600 mt-2">Memuat peta...</Text>
+              </View>
+            )}
+          />
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   )

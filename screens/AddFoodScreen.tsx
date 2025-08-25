@@ -31,7 +31,9 @@ interface FormData {
   quantity: string
   location: string
   expired_at: Date
-  image_url?: string
+  price_type: 'free' | 'paid'
+  price: string
+  image_urls: string[]
 }
 
 interface FormErrors {
@@ -41,6 +43,7 @@ interface FormErrors {
   quantity?: string
   location?: string
   expired_at?: string
+  price?: string
 }
 
 const CATEGORIES = [
@@ -65,6 +68,9 @@ export default function AddFoodScreen() {
     quantity: '',
     location: '',
     expired_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default 24 hours from now
+    price_type: 'free',
+    price: '',
+    image_urls: [],
   })
   
   const [errors, setErrors] = useState<FormErrors>({})
@@ -155,6 +161,20 @@ export default function AddFoodScreen() {
       newErrors.expired_at = 'Waktu kedaluwarsa maksimal 7 hari dari sekarang'
     }
 
+    // Price validation
+    if (formData.price_type === 'paid') {
+      if (!formData.price.trim()) {
+        newErrors.price = 'Harga wajib diisi untuk makanan berbayar'
+      } else {
+        const price = parseFloat(formData.price)
+        if (isNaN(price) || price <= 0) {
+          newErrors.price = 'Harga harus berupa angka positif'
+        } else if (price > 1000000) {
+          newErrors.price = 'Harga maksimal Rp 1.000.000'
+        }
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -163,7 +183,7 @@ export default function AddFoodScreen() {
     setFormData(prev => ({ ...prev, [field]: value }))
     
     // Clear error when user starts typing
-    if (field !== 'image_url' && errors[field as keyof FormErrors]) {
+    if (field !== 'image_urls' && errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
     }
   }
@@ -199,7 +219,15 @@ export default function AddFoodScreen() {
       }
 
       if (!result.canceled && result.assets[0]) {
-        setFormData(prev => ({ ...prev, image_url: result.assets[0].uri }))
+        const newImageUrl = result.assets[0].uri
+        setFormData(prev => {
+          const currentImages = prev.image_urls
+          if (currentImages.length >= 3) {
+            Alert.alert('Batas Maksimal', 'Maksimal 3 foto yang dapat diunggah')
+            return prev
+          }
+          return { ...prev, image_urls: [...currentImages, newImageUrl] }
+        })
       }
     } catch (error) {
       console.error('Image picker error:', error)
@@ -266,6 +294,8 @@ export default function AddFoodScreen() {
       const foodData = {
         ...formData,
         quantity: parseInt(formData.quantity),
+        price: formData.price_type === 'paid' ? parseFloat(formData.price) : 0,
+        image_url: formData.image_urls[0] || null, // Use first image as primary
       }
 
       const { success, error } = await createFood(foodData)
@@ -338,33 +368,68 @@ export default function AddFoodScreen() {
       <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         {/* Image Upload */}
         <View className="mb-6">
-          <Text className="text-gray-700 font-medium mb-3">Foto Makanan</Text>
+          <Text className="text-gray-700 font-medium mb-3">Foto Makanan (Maksimal 3)</Text>
           
-          <TouchableOpacity
-            onPress={handleImagePicker}
-            disabled={imageLoading}
-            className="h-48 bg-gray-100 rounded-xl justify-center items-center border-2 border-dashed border-gray-300"
-          >
-            {imageLoading ? (
-              <ActivityIndicator size="large" color="#0ea5e9" />
-            ) : formData.image_url ? (
-              <Image
-                source={{ uri: formData.image_url }}
-                className="w-full h-full rounded-xl"
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="items-center">
-                <Ionicons name="camera" size={48} color="#9ca3af" />
-                <Text className="text-gray-500 mt-2 text-center">
-                  Ketuk untuk menambah foto
-                </Text>
-                <Text className="text-gray-400 text-sm text-center mt-1">
-                  (Opsional)
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          {formData.image_urls.length > 0 ? (
+            <View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
+                {formData.image_urls.map((uri, index) => (
+                  <View key={index} className="mr-3 relative">
+                    <Image
+                      source={{ uri }}
+                      className="w-24 h-24 rounded-xl"
+                      resizeMode="cover"
+                    />
+                    <TouchableOpacity
+                      onPress={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          image_urls: prev.image_urls.filter((_, i) => i !== index)
+                        }))
+                      }}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full justify-center items-center"
+                    >
+                      <Ionicons name="close" size={12} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+              
+              {formData.image_urls.length < 3 && (
+                <TouchableOpacity
+                  onPress={handleImagePicker}
+                  disabled={imageLoading}
+                  className="h-24 w-24 bg-gray-100 rounded-xl justify-center items-center border-2 border-dashed border-gray-300"
+                >
+                  {imageLoading ? (
+                    <ActivityIndicator size="small" color="#0ea5e9" />
+                  ) : (
+                    <Ionicons name="add" size={24} color="#9ca3af" />
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={handleImagePicker}
+              disabled={imageLoading}
+              className="h-48 bg-gray-100 rounded-xl justify-center items-center border-2 border-dashed border-gray-300"
+            >
+              {imageLoading ? (
+                <ActivityIndicator size="large" color="#0ea5e9" />
+              ) : (
+                <View className="items-center">
+                  <Ionicons name="camera" size={48} color="#9ca3af" />
+                  <Text className="text-gray-500 mt-2 text-center">
+                    Ketuk untuk menambah foto
+                  </Text>
+                  <Text className="text-gray-400 text-sm text-center mt-1">
+                    (Opsional)
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Title */}
@@ -458,6 +523,71 @@ export default function AddFoodScreen() {
           />
           {errors.quantity && (
             <Text className="text-red-500 text-sm mt-1">{errors.quantity}</Text>
+          )}
+        </View>
+
+        {/* Price Options */}
+        <View className="mb-4">
+          <Text className="text-gray-700 font-medium mb-3">Opsi Harga *</Text>
+          
+          <View className="flex-row space-x-3 mb-3">
+            <TouchableOpacity
+              onPress={() => handleInputChange('price_type', 'free')}
+              className={`flex-1 p-4 rounded-xl border-2 flex-row items-center justify-center ${
+                formData.price_type === 'free'
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              <Ionicons 
+                name="gift" 
+                size={20} 
+                color={formData.price_type === 'free' ? '#22c55e' : '#9ca3af'} 
+              />
+              <Text className={`ml-2 font-medium ${
+                formData.price_type === 'free' ? 'text-green-700' : 'text-gray-600'
+              }`}>
+                Gratis
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => handleInputChange('price_type', 'paid')}
+              className={`flex-1 p-4 rounded-xl border-2 flex-row items-center justify-center ${
+                formData.price_type === 'paid'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              <Ionicons 
+                name="cash" 
+                size={20} 
+                color={formData.price_type === 'paid' ? '#3b82f6' : '#9ca3af'} 
+              />
+              <Text className={`ml-2 font-medium ${
+                formData.price_type === 'paid' ? 'text-blue-700' : 'text-gray-600'
+              }`}>
+                Berbayar
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          {formData.price_type === 'paid' && (
+            <View>
+              <Text className="text-gray-700 font-medium mb-2">Harga (Rp) *</Text>
+              <TextInput
+                value={formData.price}
+                onChangeText={(value) => handleInputChange('price', value)}
+                placeholder="Contoh: 15000"
+                keyboardType="numeric"
+                className={`bg-gray-50 p-4 rounded-xl text-gray-800 ${
+                  errors.price ? 'border border-red-500' : ''
+                }`}
+              />
+              {errors.price && (
+                <Text className="text-red-500 text-sm mt-1">{errors.price}</Text>
+              )}
+            </View>
           )}
         </View>
 

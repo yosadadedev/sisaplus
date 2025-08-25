@@ -10,6 +10,7 @@ CREATE TYPE user_role AS ENUM ('donor', 'receiver', 'admin');
 CREATE TYPE food_status AS ENUM ('available', 'booked', 'completed', 'expired', 'cancelled');
 CREATE TYPE booking_status AS ENUM ('pending', 'confirmed', 'completed', 'cancelled');
 CREATE TYPE notification_type AS ENUM ('booking_created', 'booking_confirmed', 'reminder', 'expired');
+CREATE TYPE price_type AS ENUM ('free', 'paid');
 
 -- Profiles table (extends auth.users)
 CREATE TABLE profiles (
@@ -49,6 +50,8 @@ CREATE TABLE foods (
   dietary_info TEXT[], -- ['halal', 'vegetarian', 'vegan', 'gluten-free']
   allergen_info TEXT[], -- ['nuts', 'dairy', 'eggs', 'seafood']
   preparation_notes TEXT,
+  price_type price_type DEFAULT 'free',
+  price DECIMAL(10,2) DEFAULT 0.00,
   is_featured BOOLEAN DEFAULT FALSE,
   view_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -57,7 +60,12 @@ CREATE TABLE foods (
   -- Constraints
   CONSTRAINT valid_pickup_time CHECK (pickup_time_end > pickup_time_start),
   CONSTRAINT valid_expiry CHECK (expired_at > pickup_time_start),
-  CONSTRAINT positive_quantity CHECK (quantity > 0)
+  CONSTRAINT positive_quantity CHECK (quantity > 0),
+  CONSTRAINT valid_price CHECK (price >= 0),
+  CONSTRAINT price_consistency CHECK (
+    (price_type = 'free' AND price = 0) OR 
+    (price_type = 'paid' AND price > 0)
+  )
 );
 
 -- Bookings table
