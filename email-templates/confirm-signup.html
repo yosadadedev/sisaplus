@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Akun SisaPlus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ef4444;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .welcome-text {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .description {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        
+        .confirm-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(239, 68, 68, 0.4);
+        }
+        
+        .features {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .feature {
+            text-align: center;
+            margin: 10px;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .feature h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .feature p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            margin: 0 10px;
+            text-decoration: none;
+            line-height: 40px;
+            font-size: 18px;
+        }
+        
+        .divider {
+            height: 2px;
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            margin: 30px 0;
+            border-radius: 2px;
+        }
+        
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header, .content, .footer {
+                padding: 25px 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .features {
+                flex-direction: column;
+            }
+            
+            .feature {
+                margin: 15px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">🍽️</div>
+            <h1>Selamat Datang di SisaPlus!</h1>
+            <p>Platform berbagi makanan untuk mengurangi food waste</p>
+        </div>
+        
+        <div class="content">
+            <h2 class="welcome-text">Halo {{ .Data.display_name }}! 👋</h2>
+            
+            <p class="description">
+                Terima kasih telah bergabung dengan SisaPlus! Kami sangat senang Anda menjadi bagian dari komunitas yang peduli lingkungan dan membantu mengurangi pemborosan makanan.
+            </p>
+            
+            <div class="divider"></div>
+            
+            <p class="description">
+                Untuk mengaktifkan akun Anda dan mulai berbagi makanan, silakan klik tombol konfirmasi di bawah ini:
+            </p>
+            
+            <a href="{{ .ConfirmationURL }}" class="confirm-button">
+                ✅ Konfirmasi Akun Saya
+            </a>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🎁</div>
+                    <h3>Berbagi Makanan</h3>
+                    <p>Bagikan makanan berlebih Anda dengan mudah</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Kurangi Waste</h3>
+                    <p>Bantu mengurangi pemborosan makanan</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Komunitas</h3>
+                    <p>Terhubung dengan sesama peduli lingkungan</p>
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p class="description">
+                Setelah konfirmasi, Anda dapat:
+                <br>• Mendonasikan makanan berlebih
+                <br>• Mencari makanan gratis di sekitar Anda
+                <br>• Bergabung dengan komunitas peduli lingkungan
+                <br>• Mendapatkan notifikasi makanan terbaru
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Tim SisaPlus</strong></p>
+            <p>Bersama kita wujudkan Indonesia tanpa food waste! 🇮🇩</p>
+            
+            <div class="social-links">
+                <a href="#">📧</a>
+                <a href="#">📱</a>
+                <a href="#">🌐</a>
+            </div>
+            
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                Email ini dikirim secara otomatis. Jika Anda tidak mendaftar di SisaPlus, abaikan email ini.
+                <br>© 2024 SisaPlus. Semua hak dilindungi.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
