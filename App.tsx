@@ -4,9 +4,11 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
-import { View, Text } from 'react-native'
+import { View, Text, Alert } from 'react-native'
 import * as Notifications from 'expo-notifications'
+import * as Linking from 'expo-linking'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { supabaseHelpers } from './lib/supabase'
 import './global.css'
 
 // Screens
@@ -113,6 +115,35 @@ export default function App() {
     // Check onboarding status
     checkOnboardingStatus()
 
+    // Setup deep link listener for email confirmation
+    const handleDeepLink = async (url: string) => {
+      if (url.includes('auth/callback')) {
+        try {
+          const { data, error } = await supabaseHelpers.handleEmailConfirmation(url)
+          if (error) {
+            Alert.alert('Error', 'Gagal mengkonfirmasi email. Silakan coba lagi.')
+          } else if (data?.user) {
+            Alert.alert('Berhasil', 'Email berhasil dikonfirmasi! Anda sekarang dapat masuk ke aplikasi.')
+          }
+        } catch (error) {
+          console.error('Email confirmation error:', error)
+          Alert.alert('Error', 'Terjadi kesalahan saat mengkonfirmasi email.')
+        }
+      }
+    }
+
+    // Listen for deep links
+    const linkingListener = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url)
+    })
+
+    // Handle initial URL if app was opened from a link
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink(url)
+      }
+    })
+
     // Setup notification listeners
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
       console.log('Notification received:', notification)
@@ -124,6 +155,7 @@ export default function App() {
     })
 
     return () => {
+      linkingListener.remove()
       Notifications.removeNotificationSubscription(notificationListener)
       Notifications.removeNotificationSubscription(responseListener)
     }
@@ -164,8 +196,17 @@ export default function App() {
     )
   }
 
+  const linking = {
+    prefixes: ['sisaplus://'],
+    config: {
+      screens: {
+        Login: 'auth/callback',
+      },
+    },
+  }
+
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <StatusBar style="dark" backgroundColor="white" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!hasSeenOnboarding ? (

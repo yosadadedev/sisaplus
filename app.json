@@ -26,6 +26,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ef4444"
     },
+    "scheme": "sisaplus",
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,

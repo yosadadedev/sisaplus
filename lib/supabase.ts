@@ -50,8 +50,11 @@ export const supabaseHelpers = {
       email,
       password,
       options: {
+        emailRedirectTo: 'sisaplus://auth/callback',
         data: {
           full_name: fullName,
+          display_name: fullName,
+          phone: whatsapp,
           whatsapp: whatsapp,
           address: address,
           status: status,
@@ -223,5 +226,23 @@ export const supabaseHelpers = {
         filter: `user_id=eq.${userId}`
       }, callback)
       .subscribe()
+  },
+
+  // Handle email confirmation callback
+  async handleEmailConfirmation(url: string) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(url)
+    return { data, error }
+  },
+
+  // Resend confirmation email
+  async resendConfirmation(email: string) {
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: 'sisaplus://auth/callback'
+      }
+    })
+    return { data, error }
   }
 }

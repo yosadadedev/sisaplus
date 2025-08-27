@@ -101,7 +101,7 @@ export default function RegisterScreen({ navigation }: any) {
       } else {
         Alert.alert(
           'Berhasil',
-          'Akun berhasil dibuat! Silakan cek email Anda untuk verifikasi.',
+          'Akun berhasil dibuat! Kami telah mengirimkan magic link ke email Anda. Silakan cek email dan klik link untuk mengaktifkan akun.',
           [
             {
               text: 'OK',
