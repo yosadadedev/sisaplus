@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -16,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuthStore } from '../store/authStore'
 import { Ionicons } from '@expo/vector-icons'
 import PhoneInput from '../components/PhoneInput'
+import ConfirmationModal from '../components/ConfirmationModal'
+import ErrorModal from '../components/ErrorModal'
 
 const STATUS_OPTIONS = [
   { label: 'Pengusaha', value: 'entrepreneur', icon: 'business', color: '#ef4444' },
@@ -39,48 +40,61 @@ export default function RegisterScreen({ navigation }: any) {
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  
+  // Modal states
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   const validateForm = () => {
     if (!fullName.trim()) {
-      Alert.alert('Error', 'Silakan masukkan nama lengkap Anda.')
+      setErrorMessage('Silakan masukkan nama lengkap Anda.')
+      setShowErrorModal(true)
       return false
     }
 
     if (!email.trim()) {
-      Alert.alert('Error', 'Silakan masukkan email Anda.')
+      setErrorMessage('Silakan masukkan email Anda.')
+      setShowErrorModal(true)
       return false
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email.trim())) {
-      Alert.alert('Error', 'Format email tidak valid.')
+      setErrorMessage('Format email tidak valid.')
+      setShowErrorModal(true)
       return false
     }
 
     if (!password.trim()) {
-      Alert.alert('Error', 'Silakan masukkan password.')
+      setErrorMessage('Silakan masukkan password.')
+      setShowErrorModal(true)
       return false
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password minimal 6 karakter.')
+      setErrorMessage('Password minimal 6 karakter.')
+      setShowErrorModal(true)
       return false
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Konfirmasi password tidak cocok.')
+      setErrorMessage('Konfirmasi password tidak cocok.')
+      setShowErrorModal(true)
       return false
     }
 
     if (!whatsapp.trim()) {
-      Alert.alert('Error', 'Silakan masukkan nomor WhatsApp Anda.')
+      setErrorMessage('Silakan masukkan nomor WhatsApp Anda.')
+      setShowErrorModal(true)
       return false
     }
 
     // Validasi WhatsApp (harus dimulai dengan +62 dan diikuti 8-12 digit)
     const whatsappRegex = /^\+62[0-9]{8,12}$/
     if (!whatsappRegex.test(whatsapp)) {
-      Alert.alert('Error', 'Format WhatsApp tidak valid. Gunakan format +62xxxxxxxxxx')
+      setErrorMessage('Format WhatsApp tidak valid. Gunakan format +62xxxxxxxxxx')
+      setShowErrorModal(true)
       return false
     }
 
@@ -94,30 +108,15 @@ export default function RegisterScreen({ navigation }: any) {
       const result = await signUp(email.trim(), password, fullName.trim(), whatsapp, address, status)
       
       if (!result.success) {
-        Alert.alert(
-          'Error',
-          result.error || 'Gagal mendaftar. Silakan coba lagi.',
-          [{ text: 'OK' }]
-        )
+        setErrorMessage(result.error || 'Gagal mendaftar. Silakan coba lagi.')
+        setShowErrorModal(true)
       } else {
-        Alert.alert(
-          'Berhasil',
-          'Akun berhasil dibuat! Kami telah mengirimkan magic link ke email Anda. Silakan cek email dan klik link untuk mengaktifkan akun.',
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.navigate('Login')
-            }
-          ]
-        )
+        setShowSuccessModal(true)
       }
     } catch (error) {
       console.error('Register error:', error)
-      Alert.alert(
-        'Error',
-        'Terjadi kesalahan. Silakan coba lagi.',
-        [{ text: 'OK' }]
-      )
+      setErrorMessage('Terjadi kesalahan. Silakan coba lagi.')
+      setShowErrorModal(true)
     }
   }
 
@@ -422,6 +421,26 @@ export default function RegisterScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+      
+      {/* Success Modal */}
+      <ConfirmationModal
+        visible={showSuccessModal}
+        title="Berhasil!"
+        message="Akun berhasil dibuat! Kami telah mengirimkan magic link ke email Anda. Silakan cek email dan klik link untuk mengaktifkan akun."
+        confirmText="OK"
+        onConfirm={() => {
+          setShowSuccessModal(false)
+          navigation.navigate('Login')
+        }}
+        type="success"
+      />
+      
+      {/* Error Modal */}
+      <ErrorModal
+        visible={showErrorModal}
+        message={errorMessage}
+        onClose={() => setShowErrorModal(false)}
+      />
     </SafeAreaView>
   )
 }

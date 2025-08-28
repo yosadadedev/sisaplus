@@ -6,11 +6,28 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "postgis";
 
 -- Create enum types
+DROP TYPE IF EXISTS user_role CASCADE;
+DROP TYPE IF EXISTS food_status CASCADE;
+DROP TYPE IF EXISTS booking_status CASCADE;
+DROP TYPE IF EXISTS notification_type CASCADE;
+DROP TYPE IF EXISTS price_type CASCADE;
+
 CREATE TYPE user_role AS ENUM ('donor', 'receiver', 'admin');
 CREATE TYPE food_status AS ENUM ('available', 'booked', 'completed', 'expired', 'cancelled');
 CREATE TYPE booking_status AS ENUM ('pending', 'confirmed', 'completed', 'cancelled');
 CREATE TYPE notification_type AS ENUM ('booking_created', 'booking_confirmed', 'reminder', 'expired');
 CREATE TYPE price_type AS ENUM ('free', 'paid');
+
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS bookings CASCADE;
+DROP TABLE IF EXISTS foods CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+
+-- Drop existing triggers and functions if they exist
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS handle_new_user();
 
 -- Profiles table (extends auth.users)
 CREATE TABLE profiles (
@@ -205,11 +222,16 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'display_name', 'User'),
     COALESCE(NEW.raw_user_meta_data->>'phone', NEW.raw_user_meta_data->>'whatsapp'),
     NEW.raw_user_meta_data->>'address',
-    COALESCE((NEW.raw_user_meta_data->>'status')::user_role, 'receiver')
+    COALESCE((NEW.raw_user_meta_data->>'status')::user_role, 'receiver'::user_role)
   );
   RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log error and return NEW to prevent auth failure
+    RAISE LOG 'Error in handle_new_user: %', SQLERRM;
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth;
 
 -- Drop existing trigger if exists
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -289,6 +311,15 @@ CREATE POLICY "Users can update own profile" ON profiles
 
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Service role can insert profiles" ON profiles
+  FOR INSERT WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Allow trigger to insert profiles" ON profiles
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users to insert profiles" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- RLS Policies for foods
 CREATE POLICY "Anyone can view available foods" ON foods
