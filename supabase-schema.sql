@@ -187,6 +187,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to handle new user signup and create profile
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (
+    id,
+    email,
+    full_name,
+    phone,
+    address,
+    role
+  )
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'display_name', 'User'),
+    COALESCE(NEW.raw_user_meta_data->>'phone', NEW.raw_user_meta_data->>'whatsapp'),
+    NEW.raw_user_meta_data->>'address',
+    COALESCE((NEW.raw_user_meta_data->>'status')::user_role, 'receiver')
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop existing trigger if exists
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Create trigger for new user signup
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
 -- Function to get nearby foods
 CREATE OR REPLACE FUNCTION get_nearby_foods(
   user_location GEOGRAPHY,
@@ -298,11 +330,9 @@ CREATE POLICY "Users can create reviews for their bookings" ON reviews
 CREATE POLICY "Users can update their own reviews" ON reviews
   FOR UPDATE USING (reviewer_id = auth.uid());
 
--- Insert sample data (optional)
-INSERT INTO profiles (id, email, full_name, role, address) VALUES
-  ('00000000-0000-0000-0000-000000000001', 'donor@example.com', 'John Donor', 'donor', 'Jakarta Selatan'),
-  ('00000000-0000-0000-0000-000000000002', 'receiver@example.com', 'Jane Receiver', 'receiver', 'Jakarta Pusat')
-ON CONFLICT (id) DO NOTHING;
+-- Insert sample data (optional) - REMOVED
+-- Sample data removed to avoid foreign key constraint violations
+-- Profiles will be created automatically when users register through the app
 
 -- Comments for documentation
 COMMENT ON TABLE profiles IS 'User profiles with role-based access';

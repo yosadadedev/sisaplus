@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuthStore } from '../store/authStore'
 import { Ionicons } from '@expo/vector-icons'
+import PhoneInput from '../components/PhoneInput'
 
 const STATUS_OPTIONS = [
   { label: 'Pengusaha', value: 'entrepreneur', icon: 'business', color: '#ef4444' },
@@ -28,11 +29,11 @@ const STATUS_OPTIONS = [
 
 export default function RegisterScreen({ navigation }: any) {
   const { signUp, loading } = useAuthStore()
-  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [whatsapp, setWhatsapp] = useState('+62')
   const [address, setAddress] = useState('')
   const [status, setStatus] = useState('')
   const [showStatusModal, setShowStatusModal] = useState(false)
@@ -245,24 +246,13 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               {/* WhatsApp Input */}
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-gray-700 mb-2">
-                  WhatsApp *
-                </Text>
-                <View className="relative">
-                  <TextInput
-                    value={whatsapp}
-                    onChangeText={setWhatsapp}
-                    placeholder="+62812345678"
-                    keyboardType="phone-pad"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-800"
-                    placeholderTextColor="#9CA3AF"
-                  />
-                  <View className="absolute right-3 top-3">
-                    <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
-                  </View>
-                </View>
-              </View>
+              <PhoneInput
+                value={whatsapp}
+                onChangeText={setWhatsapp}
+                placeholder="812345678"
+                label="WhatsApp"
+                required
+              />
 
               {/* Address Input */}
               <View className="mb-4">
