@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -14,12 +13,19 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuthStore } from '../store/authStore'
 import Logo from '../components/Logo'
 import { Ionicons } from '@expo/vector-icons'
+import ConfirmationModal from '../components/ConfirmationModal'
+import ErrorModal from '../components/ErrorModal'
 
 export default function LoginScreen({ navigation }: any) {
   const { signInWithEmail, loading, initialize, initialized } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  
+  // Modal states
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (!initialized) {
@@ -29,11 +35,8 @@ export default function LoginScreen({ navigation }: any) {
 
   const handleEmailSignIn = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert(
-        'Error',
-        'Silakan masukkan email dan password.',
-        [{ text: 'OK' }]
-      )
+      setErrorMessage('Silakan masukkan email dan password.')
+      setShowErrorModal(true)
       return
     }
 
@@ -41,19 +44,15 @@ export default function LoginScreen({ navigation }: any) {
       const { error } = await signInWithEmail(email.trim(), password)
       
       if (error) {
-        Alert.alert(
-          'Error',
-          error.message || 'Email atau password salah. Silakan coba lagi.',
-          [{ text: 'OK' }]
-        )
+        setErrorMessage(error.message || 'Email atau password salah. Silakan coba lagi.')
+        setShowErrorModal(true)
+      } else {
+        setShowSuccessModal(true)
       }
     } catch (error) {
       console.error('Login error:', error)
-      Alert.alert(
-        'Error',
-        'Terjadi kesalahan. Silakan coba lagi.',
-        [{ text: 'OK' }]
-      )
+      setErrorMessage('Terjadi kesalahan. Silakan coba lagi.')
+      setShowErrorModal(true)
     }
   }
 
@@ -183,6 +182,25 @@ export default function LoginScreen({ navigation }: any) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      {/* Success Modal */}
+      <ConfirmationModal
+        visible={showSuccessModal}
+        title="Berhasil!"
+        message="Login berhasil! Selamat datang di Sisa Plus."
+        confirmText="OK"
+        onConfirm={() => {
+          setShowSuccessModal(false)
+        }}
+        type="success"
+      />
+      
+      {/* Error Modal */}
+      <ErrorModal
+        visible={showErrorModal}
+        message={errorMessage}
+        onClose={() => setShowErrorModal(false)}
+      />
     </SafeAreaView>
   )
 }
