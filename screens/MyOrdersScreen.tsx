@@ -283,7 +283,7 @@ export default function MyOrdersScreen() {
                       </View>
                       <View className="flex-1">
                         <Text className="text-base font-semibold text-gray-900">
-                          {food?.title || 'Makanan tidak ditemukan'}
+                          {food?.title || (booking.status === 'completed' ? 'Makanan tidak ditemukan' : 'Data makanan tidak tersedia')}
                         </Text>
                         <Text className="mt-1 text-sm text-gray-600">Status: {booking.status}</Text>
                         <Text className="mt-1 text-xs text-gray-500">
@@ -302,7 +302,9 @@ export default function MyOrdersScreen() {
                               ? 'bg-green-100'
                               : booking.status === 'pending'
                                 ? 'bg-yellow-100'
-                                : 'bg-red-100'
+                                : booking.status === 'completed'
+                                  ? 'bg-blue-100'
+                                  : 'bg-red-100'
                           }`}>
                           <Text
                             className={`text-xs font-medium ${
@@ -310,13 +312,17 @@ export default function MyOrdersScreen() {
                                 ? 'text-green-800'
                                 : booking.status === 'pending'
                                   ? 'text-yellow-800'
-                                  : 'text-red-800'
+                                  : booking.status === 'completed'
+                                    ? 'text-blue-800'
+                                    : 'text-red-800'
                             }`}>
                             {booking.status === 'confirmed'
                               ? 'Dikonfirmasi'
                               : booking.status === 'pending'
                                 ? 'Menunggu'
-                                : 'Dibatalkan'}
+                                : booking.status === 'completed'
+                                  ? 'Selesai'
+                                  : 'Dibatalkan'}
                           </Text>
                         </View>
                         {booking.status === 'pending' && (

@@ -48,7 +48,10 @@ export const convertFirebaseFoodToLocal = (firebaseFood: FirebaseFood, userData?
     status: firebaseFood.isAvailable ? 'available' : 'completed',
     profiles: userData ? {
       full_name: userData.name,
-    } : undefined,
+    } : {
+      full_name: 'Pengguna tidak diketahui',
+      avatar_url: undefined,
+    },
   };
 };
 
@@ -70,15 +73,28 @@ export const convertLocalFoodToFirebase = (
 };
 
 export const convertFirebaseBookingToLocal = (firebaseBooking: FirebaseBooking): Booking => {
+  // Helper function to convert timestamp to ISO string
+  const toISOString = (timestamp: any): string => {
+    if (!timestamp) return new Date().toISOString();
+    if (typeof timestamp === 'string') return timestamp;
+    if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      return timestamp.toDate().toISOString();
+    }
+    if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000).toISOString();
+    }
+    return new Date(timestamp).toISOString();
+  };
+
   return {
     id: firebaseBooking.id,
     food_id: firebaseBooking.foodId,
     user_id: firebaseBooking.buyerId,
     status: firebaseBooking.status,
-    pickup_time: firebaseBooking.pickupTime?.toDate().toISOString() || null,
+    pickup_time: firebaseBooking.pickupTime ? toISOString(firebaseBooking.pickupTime) : null,
     notes: firebaseBooking.notes || null,
-    created_at: firebaseBooking.createdAt.toDate().toISOString(),
-    updated_at: firebaseBooking.updatedAt.toDate().toISOString(),
+    created_at: toISOString(firebaseBooking.createdAt),
+    updated_at: toISOString(firebaseBooking.updatedAt),
   };
 };
 

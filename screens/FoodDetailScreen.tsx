@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useFoodStore } from '../store/foodStore';
 import { useAuthStore } from '../store/authStore';
+import { Food } from '../lib/database';
 import { formatDistanceToNow, format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { WebView } from 'react-native-webview';
@@ -29,26 +30,52 @@ export default function FoodDetailScreen() {
   const navigation = useNavigation();
   const { foodId } = route.params as RouteParams;
   const { user } = useAuthStore();
-  const { foods, bookFood, isLoading } = useFoodStore();
+  const { foods, bookFood, isLoading, userBookings } = useFoodStore();
 
-  const [food, setFood] = useState<any>(null);
+  const [food, setFood] = useState<Food | undefined>(undefined);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
   const [mapUrl, setMapUrl] = useState('');
+  const [userBooking, setUserBooking] = useState<any>(null);
 
   useEffect(() => {
-    const foundFood = foods.find((f) => f.id === foodId);
-    setFood(foundFood);
-  }, [foodId, foods]);
+    const loadFoodData = async () => {
+      // First try to find food in the store
+      let foundFood = foods.find((f) => f.id === foodId);
+      
+      // If not found in store (e.g., user's own donations), fetch directly from Firebase
+       if (!foundFood && foodId) {
+         try {
+           const { foodService } = await import('../services/firebaseService');
+           const fetchedFood = await foodService.getFoodById(foodId);
+           foundFood = fetchedFood || undefined;
+         } catch (error) {
+           console.error('Error fetching food data:', error);
+         }
+       }
+       
+       setFood(foundFood);
+      
+      // Check if user has already booked this food
+      if (user && foundFood) {
+        const existingBooking = userBookings.find(
+          (booking) => booking.food_id === foundFood.id && booking.user_id === user.id
+        );
+        setUserBooking(existingBooking);
+      }
+    };
+    
+    loadFoodData();
+  }, [foodId, foods, userBookings, user]);
 
   const handleBookFood = async () => {
     if (!food || !user) return;
 
     try {
       setBookingLoading(true);
-      await bookFood(food.id, user.id, bookingMessage);
+      await bookFood(food.id || '', user.id || '', bookingMessage || '');
 
       Alert.alert('Berhasil!', 'Makanan berhasil dipesan. Donor akan segera menghubungi Anda.', [
         {
@@ -69,34 +96,107 @@ export default function FoodDetailScreen() {
     }
   };
 
-  const handleContactDonor = () => {
-    if (!food?.profiles?.phone) {
-      Alert.alert('Info', 'Nomor telepon donor tidak tersedia.', [{ text: 'OK' }]);
+  const handleConfirmBooking = async () => {
+    if (!userBooking?.id) {
+      Alert.alert('Error', 'Data booking tidak tersedia');
       return;
     }
 
-    Alert.alert('Hubungi Donor', `Hubungi ${food.profiles.full_name} melalui WhatsApp?`, [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'WhatsApp',
-        onPress: () => {
-          const message = `Halo, saya tertarik dengan makanan "${food.title}" yang Anda bagikan di Sisa Plus.`;
-          const url = `whatsapp://send?phone=${food.profiles.phone}&text=${encodeURIComponent(message)}`;
-          Linking.openURL(url).catch(() => {
-            Alert.alert('Error', 'WhatsApp tidak terinstall di perangkat Anda.');
-          });
-        },
-      },
-    ]);
+    try {
+      setBookingLoading(true);
+      // Update booking status to confirmed
+      const { updateDoc, doc } = await import('firebase/firestore');
+      const { db } = await import('../config/firebase');
+      await updateDoc(doc(db, 'bookings', userBooking.id), {
+        status: 'confirmed',
+        confirmedAt: new Date().toISOString()
+      });
+      Alert.alert('Berhasil', 'Pesanan telah dikonfirmasi!');
+      // Refresh data
+      const loadFoodData = async () => {
+        let foundFood = foods.find((f) => f.id === foodId);
+        if (!foundFood && foodId) {
+          try {
+            const { foodService } = await import('../services/firebaseService');
+            const fetchedFood = await foodService.getFoodById(foodId);
+            foundFood = fetchedFood || undefined;
+          } catch (error) {
+            console.error('Error fetching food data:', error);
+          }
+        }
+        setFood(foundFood);
+        if (user && foundFood) {
+          const existingBooking = userBookings.find(
+            (booking) => booking.food_id === foundFood.id && booking.user_id === user.id
+          );
+          setUserBooking(existingBooking);
+        }
+      };
+      await loadFoodData();
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      Alert.alert('Error', 'Gagal mengkonfirmasi pesanan');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleCompleteBooking = async () => {
+    if (!userBooking?.id) {
+      Alert.alert('Error', 'Data booking tidak tersedia');
+      return;
+    }
+
+    try {
+      setBookingLoading(true);
+      // Update booking status to completed
+      const { updateDoc, doc } = await import('firebase/firestore');
+      const { db } = await import('../config/firebase');
+      await updateDoc(doc(db, 'bookings', userBooking.id), {
+        status: 'completed',
+        updatedAt: new Date().toISOString()
+      });
+      Alert.alert('Berhasil', 'Pesanan telah selesai! Terima kasih atas rating Anda.');
+      // Refresh data
+      const loadFoodData = async () => {
+        let foundFood = foods.find((f) => f.id === foodId);
+        if (!foundFood && foodId) {
+          try {
+            const { foodService } = await import('../services/firebaseService');
+            const fetchedFood = await foodService.getFoodById(foodId);
+            foundFood = fetchedFood || undefined;
+          } catch (error) {
+            console.error('Error fetching food data:', error);
+          }
+        }
+        setFood(foundFood);
+        if (user && foundFood) {
+          const existingBooking = userBookings.find(
+            (booking) => booking.food_id === foundFood.id && booking.user_id === user.id
+          );
+          setUserBooking(existingBooking);
+        }
+      };
+      await loadFoodData();
+    } catch (error) {
+      console.error('Error completing booking:', error);
+      Alert.alert('Error', 'Gagal menyelesaikan pesanan');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleContactDonor = () => {
+    Alert.alert('Info', 'Fitur kontak donor akan segera tersedia.', [{ text: 'OK' }]);
   };
 
   const handleGetDirections = () => {
-    if (!food?.latitude || !food?.longitude) {
+    if (!food?.location) {
       Alert.alert('Info', 'Lokasi tidak tersedia.', [{ text: 'OK' }]);
       return;
     }
 
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${food.latitude},${food.longitude}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(food.location)}`;
     setMapUrl(url);
     setShowWebView(true);
   };
@@ -133,7 +233,42 @@ export default function FoodDetailScreen() {
 
   const isExpired = food && new Date(food.expired_at) < new Date();
   const isOwner = food && user && food.donor_id === user.id;
-  const canBook = food && food.status === 'available' && !isExpired && !isOwner;
+  const hasActiveBooking = userBooking && ['pending', 'confirmed'].includes(userBooking.status);
+  const canBook = food && food.status === 'available' && !isExpired && !isOwner && !hasActiveBooking;
+  
+  const getBookingStatusText = () => {
+    if (!userBooking) return null;
+    const isDonor = food && user && food.donor_id === user.id;
+    
+    switch (userBooking.status) {
+      case 'pending':
+        return isDonor ? 'Menunggu Konfirmasi Anda' : 'Menunggu Konfirmasi Donatur';
+      case 'confirmed':
+        return isDonor ? 'Siap Diambil' : 'Pesanan Dikonfirmasi';
+      case 'completed':
+        return 'Pesanan Selesai';
+      case 'cancelled':
+        return 'Pesanan Dibatalkan';
+      default:
+        return null;
+    }
+  };
+  console.log('food', food)
+  const getBookingStatusColor = () => {
+    if (!userBooking) return 'bg-gray-500';
+    switch (userBooking.status) {
+      case 'pending':
+        return 'bg-yellow-500';
+      case 'confirmed':
+        return 'bg-green-500';
+      case 'completed':
+        return 'bg-blue-500';
+      case 'cancelled':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
 
   if (!food) {
     return (
@@ -165,10 +300,8 @@ export default function FoodDetailScreen() {
         {/* Image */}
         <View className="mx-6 mt-4 h-80 overflow-hidden rounded-2xl bg-gray-100">
           {food.image_urls && food.image_urls.length > 0 ? (
-            <Image source={{ uri: food.image_urls[0] }} className="h-full w-full" resizeMode="cover" />
-          ) : food.image_url ? (
-            <Image source={{ uri: food.image_url }} className="h-full w-full" resizeMode="cover" />
-          ) : (
+              <Image source={{ uri: food.image_urls[0] }} className="h-full w-full" resizeMode="cover" />
+            ) : (
             <View className="h-full w-full items-center justify-center">
               <View className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-gray-200">
                 <Ionicons name="image" size={32} color="#9ca3af" />
@@ -181,15 +314,23 @@ export default function FoodDetailScreen() {
         <View className="px-6 py-6">
           {/* Status Badge */}
           <View className="mb-6 flex-row items-center justify-between">
-            <View className={`rounded-full px-4 py-2 ${getStatusColor(food.status)}`}>
-              <Text className="text-sm font-semibold text-white">{getStatusText(food.status)}</Text>
+            <View className={`rounded-full px-4 py-2 ${getStatusColor(food.status ?? '')}`}>
+              <Text className="text-sm font-semibold text-white">{getStatusText(food.status ?? '')}</Text>
             </View>
 
-            {isExpired && (
-              <View className="rounded-full bg-red-100 px-4 py-2">
-                <Text className="text-sm font-semibold text-red-700">Kedaluwarsa</Text>
-              </View>
-            )}
+            <View className="flex-row space-x-2">
+              {userBooking && (
+                <View className={`rounded-full px-4 py-2 ${getBookingStatusColor()}`}>
+                  <Text className="text-sm font-semibold text-white">{getBookingStatusText()}</Text>
+                </View>
+              )}
+              
+              {isExpired && (
+                <View className="rounded-full bg-red-100 px-4 py-2">
+                  <Text className="text-sm font-semibold text-red-700">Kedaluwarsa</Text>
+                </View>
+              )}
+            </View>
           </View>
 
           {/* Title and Description */}
@@ -324,8 +465,8 @@ export default function FoodDetailScreen() {
       </ScrollView>
 
       {/* Bottom Action */}
-      {canBook && (
-        <View className="border-t border-gray-100 bg-white px-6 py-6">
+      <View className="border-t border-gray-100 bg-white px-6 py-6">
+        {canBook && (
           <TouchableOpacity
             onPress={() => setShowBookingModal(true)}
             disabled={isLoading}
@@ -346,8 +487,103 @@ export default function FoodDetailScreen() {
               </View>
             )}
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+        
+        {userBooking && userBooking.status === 'pending' && (
+          <View>
+            {isOwner ? (
+              <TouchableOpacity
+                onPress={() => Alert.alert('Konfirmasi', 'Konfirmasi pesanan ini?', [
+                  { text: 'Batal', style: 'cancel' },
+                  { text: 'Konfirmasi', onPress: handleConfirmBooking }
+                ])}
+                className="items-center justify-center rounded-2xl bg-blue-500 py-4">
+                <View className="flex-row items-center">
+                  <Ionicons name="checkmark-circle" size={20} color="white" />
+                  <Text className="ml-2 text-lg font-bold text-white">Konfirmasi Pesanan</Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <View className="items-center justify-center rounded-2xl bg-yellow-100 py-4">
+                <View className="flex-row items-center">
+                  <Ionicons name="time" size={20} color="#d97706" />
+                  <Text className="ml-2 text-lg font-bold text-yellow-700">Menunggu Konfirmasi Donatur</Text>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+        
+        {userBooking && userBooking.status === 'confirmed' && (
+          <View>
+            {isOwner ? (
+              <View className="items-center justify-center rounded-2xl bg-green-100 py-4">
+                <View className="flex-row items-center">
+                  <Ionicons name="checkmark-done" size={20} color="#059669" />
+                  <Text className="ml-2 text-lg font-bold text-green-700">Siap Diambil Receiver</Text>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => Alert.alert('Konfirmasi', 'Tandai pesanan sebagai diterima dan beri rating?', [
+                  { text: 'Batal', style: 'cancel' },
+                  { text: 'Pesanan Diterima', onPress: handleCompleteBooking }
+                ])}
+                className="items-center justify-center rounded-2xl bg-green-500 py-4">
+                <View className="flex-row items-center">
+                  <Ionicons name="star" size={20} color="white" />
+                  <Text className="ml-2 text-lg font-bold text-white">Pesanan Diterima & Beri Rating</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+        
+        {userBooking && userBooking.status === 'completed' && (
+          <View className="items-center justify-center rounded-2xl bg-blue-100 py-4">
+            <View className="flex-row items-center">
+              <Ionicons name="checkmark-circle" size={20} color="#059669" />
+              <Text className="ml-2 text-lg font-bold text-green-700">Pesanan Dikonfirmasi - Siap Diambil</Text>
+            </View>
+          </View>
+        )}
+        
+        {userBooking && userBooking.status === 'completed' && (
+          <View className="items-center justify-center rounded-2xl bg-blue-100 py-4">
+            <View className="flex-row items-center">
+              <Ionicons name="checkmark-done" size={20} color="#2563eb" />
+              <Text className="ml-2 text-lg font-bold text-blue-700">Pesanan Selesai</Text>
+            </View>
+          </View>
+        )}
+        
+        {userBooking && userBooking.status === 'cancelled' && (
+          <View className="items-center justify-center rounded-2xl bg-red-100 py-4">
+            <View className="flex-row items-center">
+              <Ionicons name="close-circle" size={20} color="#dc2626" />
+              <Text className="ml-2 text-lg font-bold text-red-700">Pesanan Dibatalkan</Text>
+            </View>
+          </View>
+        )}
+        
+        {isOwner && (
+          <View className="items-center justify-center rounded-2xl bg-gray-100 py-4">
+            <View className="flex-row items-center">
+              <Ionicons name="person" size={20} color="#6b7280" />
+              <Text className="ml-2 text-lg font-bold text-gray-600">Ini adalah donasi Anda</Text>
+            </View>
+          </View>
+        )}
+        
+        {isExpired && !isOwner && !userBooking && (
+          <View className="items-center justify-center rounded-2xl bg-red-100 py-4">
+            <View className="flex-row items-center">
+              <Ionicons name="time" size={20} color="#dc2626" />
+              <Text className="ml-2 text-lg font-bold text-red-700">Makanan Sudah Kedaluwarsa</Text>
+            </View>
+          </View>
+        )}
+      </View>
 
       {/* Booking Modal */}
       <Modal

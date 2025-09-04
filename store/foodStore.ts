@@ -103,7 +103,22 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
       const currentUser = useAuthStore.getState().user;
       
       // Filter out user's own donations
-      const allFoods = foods.filter(food => food.donor_id !== currentUser?.id);
+      let allFoods = foods.filter(food => food.donor_id !== currentUser?.id);
+
+      // Filter out foods that have confirmed or completed bookings
+      if (currentUser) {
+        try {
+          const userBookings = await bookingService.getBookingsByBuyer(currentUser.id);
+          const bookedFoodIds = userBookings
+            .filter(booking => ['confirmed', 'completed'].includes(booking.status))
+            .map(booking => booking.food_id);
+          
+          allFoods = allFoods.filter(food => !bookedFoodIds.includes(food.id));
+        } catch (bookingError) {
+          console.warn('Could not load user bookings for filtering:', bookingError);
+          // Continue without filtering if booking data is unavailable
+        }
+      }
 
       // Update selectedCategory if category parameter is provided
       if (category !== undefined) {
@@ -157,7 +172,24 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
       }
 
       const donations = await foodService.getUserDonations(currentUser.id);
-      set({ myDonations: donations, isLoading: false });
+      
+      // Filter out foods that have completed bookings
+      const availableDonations = await Promise.all(
+        donations.map(async (food) => {
+          try {
+            const bookings = await bookingService.getBookingsBySeller(currentUser.id);
+            const foodBookings = bookings.filter(booking => booking.foodId === food.id);
+            const hasCompletedBooking = foodBookings.some(booking => booking.status === 'completed');
+            return hasCompletedBooking ? null : food;
+          } catch (error) {
+            console.error('Error checking bookings for food:', food.id, error);
+            return food; // Return food if there's an error checking bookings
+          }
+        })
+      );
+      
+      const filteredDonations = availableDonations.filter(food => food !== null) as Food[];
+      set({ myDonations: filteredDonations, isLoading: false });
     } catch (error) {
       console.error('Error loading my donations:', error);
       set({ myDonations: [], error: 'Failed to load donations', isLoading: false });
@@ -404,14 +436,30 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
+      // Update in Firebase first
+      await bookingService.updateBookingStatus(bookingId, status);
+      
+      // Update local state for userBookings
       const currentBookings = get().userBookings;
       const updatedBookings = currentBookings.map((booking) =>
         booking.id === bookingId
           ? { ...booking, status, updated_at: getCurrentTimestamp() }
           : booking
       );
+      
+      // Update local state for incomingBookings
+      const currentIncomingBookings = get().incomingBookings;
+      const updatedIncomingBookings = currentIncomingBookings.map((booking) =>
+        booking.id === bookingId
+          ? { ...booking, status, updated_at: getCurrentTimestamp() }
+          : booking
+      );
 
-      set({ userBookings: updatedBookings, isLoading: false });
+      set({ 
+        userBookings: updatedBookings, 
+        incomingBookings: updatedIncomingBookings,
+        isLoading: false 
+      });
     } catch (error) {
       console.error('Error updating booking status:', error);
       set({ error: 'Failed to update booking status', isLoading: false });
