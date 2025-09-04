@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -123,8 +123,18 @@ export default function MyOrdersScreen() {
                     }}
                     className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                     <View className="flex-row">
-                      <View className="mr-3 h-16 w-16 items-center justify-center rounded-lg bg-gray-200">
-                        <Ionicons name="restaurant" size={24} color="#9CA3AF" />
+                      <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
+                        {food?.image_urls && food.image_urls.length > 0 ? (
+                          <Image 
+                            source={{ uri: food.image_urls[0] }} 
+                            className="h-full w-full" 
+                            resizeMode="cover" 
+                          />
+                        ) : (
+                          <View className="h-full w-full items-center justify-center">
+                            <Ionicons name="restaurant" size={24} color="#9CA3AF" />
+                          </View>
+                        )}
                       </View>
                       <View className="flex-1">
                         <Text className="text-base font-semibold text-gray-900">

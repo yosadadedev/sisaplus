@@ -164,7 +164,9 @@ export default function FoodDetailScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Image */}
         <View className="mx-6 mt-4 h-80 overflow-hidden rounded-2xl bg-gray-100">
-          {food.image_url ? (
+          {food.image_urls && food.image_urls.length > 0 ? (
+            <Image source={{ uri: food.image_urls[0] }} className="h-full w-full" resizeMode="cover" />
+          ) : food.image_url ? (
             <Image source={{ uri: food.image_url }} className="h-full w-full" resizeMode="cover" />
           ) : (
             <View className="h-full w-full items-center justify-center">
