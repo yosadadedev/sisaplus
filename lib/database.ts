@@ -37,6 +37,16 @@ export interface Food {
   created_at: string;
   updated_at: string;
   expired_at: string;
+  // Additional properties for UI
+  quantity?: number;
+  category?: string;
+  location?: string;
+  distance_km?: number;
+  status?: 'available' | 'booked' | 'completed';
+  profiles?: {
+    full_name: string;
+    avatar_url?: string;
+  };
 }
 
 export interface Booking {
@@ -52,6 +62,12 @@ export interface Booking {
 
 export interface BookingWithFood extends Booking {
   food: Food;
+}
+
+export interface Donor extends User {
+  name: string;
+  rating: number;
+  total_donations: number;
 }
 
 // Initialize database tables

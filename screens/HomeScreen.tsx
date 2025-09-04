@@ -165,12 +165,16 @@ export default function HomeScreen() {
   const { user } = useAuthStore()
   const {
     foods,
+    filteredFoods,
+    selectedCategory: storeSelectedCategory,
     isLoading,
     loadFoods,
+    setCategory,
+    getCategories,
   } = useFoodStore()
 
   const [searchText, setSearchText] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  // Use store's selectedCategory instead of local state
   const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
@@ -184,7 +188,7 @@ export default function HomeScreen() {
   }, [searchText, loadFoods])
 
   const handleCategoryPress = (categoryId: string | null) => {
-    setSelectedCategory(categoryId)
+    setCategory(categoryId)
     loadFoods(categoryId || undefined, searchText)
   }
 
@@ -196,7 +200,7 @@ export default function HomeScreen() {
     <TouchableOpacity
       onPress={() => handleCategoryPress(item.id)}
       className={`mr-3 px-4 py-2 rounded-full border ${
-        selectedCategory === item.id
+        storeSelectedCategory === item.id
           ? 'bg-primary-500 border-primary-500'
           : 'bg-white border-gray-300'
       }`}
@@ -205,11 +209,11 @@ export default function HomeScreen() {
         <Ionicons
           name={item.icon as any}
           size={16}
-          color={selectedCategory === item.id ? 'white' : '#6b7280'}
+          color={storeSelectedCategory === item.id ? 'white' : '#6b7280'}
         />
         <Text
-          className={`ml-2 font-medium ${
-            selectedCategory === item.id ? 'text-white' : 'text-gray-700'
+          className={`text-sm font-medium ${
+            storeSelectedCategory === item.id ? 'text-white' : 'text-gray-700'
           }`}
         >
           {item.name}
@@ -284,7 +288,7 @@ export default function HomeScreen() {
           </View>
         ) : (
           <FlatList
-            data={foods}
+            data={filteredFoods.length > 0 || storeSelectedCategory ? filteredFoods : foods}
             renderItem={renderFoodItem}
             keyExtractor={(item) => item.id}
             refreshControl={
@@ -292,7 +296,7 @@ export default function HomeScreen() {
                 refreshing={refreshing}
                 onRefresh={() => {
                   setRefreshing(true)
-                  loadFoods(selectedCategory || undefined, searchText).finally(() => setRefreshing(false))
+                  loadFoods(storeSelectedCategory || undefined, searchText).finally(() => setRefreshing(false))
                 }}
                 colors={['#0ea5e9']}
                 tintColor="#0ea5e9"
@@ -306,8 +310,10 @@ export default function HomeScreen() {
                   Tidak ada makanan tersedia
                 </Text>
                 <Text className="text-gray-400 text-center px-8">
-                  Belum ada makanan yang dibagikan di area ini. Coba ubah filter atau lokasi Anda.
-                </Text>
+                {storeSelectedCategory
+                  ? `Tidak ada makanan dalam kategori ${CATEGORIES.find(c => c.id === storeSelectedCategory)?.name}`
+                  : 'Belum ada donasi makanan yang tersedia saat ini'}
+              </Text>
               </View>
             }
           />
