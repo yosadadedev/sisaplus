@@ -42,6 +42,7 @@ export const convertFirebaseFoodToLocal = (firebaseFood: FirebaseFood): Food => 
     expired_at:
       firebaseFood.expiryDate?.toDate().toISOString() ||
       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    image_urls: firebaseFood.image_urls || [],
     category: firebaseFood.category,
     location: firebaseFood.location,
     status: firebaseFood.isAvailable ? 'available' : 'completed',
@@ -55,14 +56,13 @@ export const convertLocalFoodToFirebase = (
     name: localFood.title,
     description: localFood.description || '',
     price: localFood.price || 0,
-    category: localFood.category || 'other',
+    image_urls: localFood.image_urls || [],
+    category: localFood.category || 'others',
     isAvailable: localFood.status !== 'completed',
     sellerId: localFood.donor_id,
     sellerName: '', // Will be filled by the service
-    location: localFood.pickup_address,
-    expiryDate: localFood.expired_at
-      ? Timestamp.fromDate(new Date(localFood.expired_at))
-      : undefined,
+    location: localFood.location || localFood.pickup_address,
+    expiryDate: localFood.expired_at ? Timestamp.fromDate(new Date(localFood.expired_at)) : undefined,
   };
 };
 

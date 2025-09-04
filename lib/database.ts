@@ -37,6 +37,7 @@ export interface Food {
   created_at: string;
   updated_at: string;
   expired_at: string;
+  image_urls?: string[];
   // Additional properties for UI
   quantity?: number;
   category?: string;

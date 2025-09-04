@@ -19,6 +19,7 @@ export interface FirebaseFood {
   description: string;
   price: number;
   image?: string;
+  image_urls?: string[];
   category: string;
   isAvailable: boolean;
   sellerId: string; // Reference to user who posted the food

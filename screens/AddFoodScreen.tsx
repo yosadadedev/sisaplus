@@ -21,6 +21,7 @@ import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFoodStore } from '../store/foodStore';
 import { useAuthStore } from '../store/authStore';
+import { imageService } from '../services/imageService';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -294,6 +295,22 @@ export default function AddFoodScreen() {
         return;
       }
 
+      // Upload images to Firebase Storage if any
+      let imageUrls: string[] = [];
+      if (formData.image_urls.length > 0) {
+        try {
+          const uploadResults = await imageService.uploadMultipleImages(
+            formData.image_urls,
+            'foods'
+          );
+          imageUrls = uploadResults.map(result => result.url);
+        } catch (error) {
+          console.error('Error uploading images:', error);
+          Alert.alert('Error', 'Gagal mengupload gambar. Silakan coba lagi.');
+          return;
+        }
+      }
+
       const foodData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -315,6 +332,7 @@ export default function AddFoodScreen() {
         location: formData.location.trim(),
         distance_km: 0,
         status: 'available' as const,
+        image_urls: imageUrls,
         profiles: {
           full_name: user.full_name || 'Unknown',
           avatar_url: undefined,

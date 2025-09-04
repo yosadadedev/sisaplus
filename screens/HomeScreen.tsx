@@ -55,6 +55,7 @@ const FoodItem: React.FC<FoodItemProps> = ({ item, onPress }) => {
       }
     });
   };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'available':
@@ -99,8 +100,8 @@ const FoodItem: React.FC<FoodItemProps> = ({ item, onPress }) => {
       <View className="flex-row">
         {/* Image */}
         <View className="mr-4 h-20 w-20 overflow-hidden rounded-lg bg-gray-200">
-          {item.image_url ? (
-            <Image source={{ uri: item.image_url }} className="h-full w-full" resizeMode="cover" />
+          {item.image_urls && item.image_urls.length > 0 ? (
+            <Image source={{ uri: item.image_urls[0] }} className="h-full w-full" resizeMode="cover" />
           ) : (
             <View className="h-full w-full items-center justify-center">
               <Ionicons name="image" size={24} color="#9ca3af" />
