@@ -9,6 +9,8 @@ export type RootStackParamList = {
   Register: undefined
   MainTabs: undefined
   FoodDetail: { foodId: string }
+  EditProfile: undefined
+  Help: undefined
 }
 
 // Tab Navigator Types

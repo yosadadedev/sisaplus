@@ -13,6 +13,8 @@ import './global.css'
 // Screens
 import OnboardingScreen from './screens/OnboardingScreen'
 import LoginScreen from './screens/LoginScreen'
+import EditProfileScreen from './screens/EditProfileScreen'
+import HelpScreen from './screens/HelpScreen'
 import RegisterScreen from './screens/RegisterScreen'
 import HomeScreen from './screens/HomeScreen'
 import FoodDetailScreen from './screens/FoodDetailScreen'
@@ -186,6 +188,22 @@ export default function App() {
             <Stack.Screen 
               name="FoodDetail" 
               component={FoodDetailScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen 
+              name="EditProfile" 
+              component={EditProfileScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen 
+              name="Help" 
+              component={HelpScreen}
               options={{
                 headerShown: false,
                 presentation: 'modal',

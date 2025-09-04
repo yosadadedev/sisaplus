@@ -1,3 +1,4 @@
+// Melihat isi file ProfileScreen.tsx
 import React from 'react'
 import {
   View,
@@ -47,8 +48,7 @@ export default function ProfileScreen() {
       title: 'Edit Profil',
       subtitle: 'Ubah informasi profil Anda',
       onPress: () => {
-        // TODO: Navigate to edit profile screen
-        Alert.alert('Info', 'Fitur edit profil akan segera hadir')
+        navigation.navigate('EditProfile' as never)
       },
     },
     {
@@ -65,8 +65,7 @@ export default function ProfileScreen() {
       title: 'Bantuan',
       subtitle: 'FAQ dan dukungan pelanggan',
       onPress: () => {
-        // TODO: Navigate to help screen
-        Alert.alert('Info', 'Fitur bantuan akan segera hadir')
+        navigation.navigate('Help' as never)
       },
     },
     {
@@ -92,19 +91,12 @@ export default function ProfileScreen() {
           {/* User Info */}
           <View className="flex-row items-center mt-4">
             <View className="w-16 h-16 bg-primary-100 rounded-full justify-center items-center">
-              {user?.user_metadata?.avatar_url ? (
-                <Image
-                  source={{ uri: user.user_metadata.avatar_url }}
-                  className="w-16 h-16 rounded-full"
-                />
-              ) : (
-                <Ionicons name="person" size={32} color="#0ea5e9" />
-              )}
+              <Ionicons name="person" size={32} color="#3b82f6" />
             </View>
             
             <View className="ml-4 flex-1">
               <Text className="text-lg font-semibold text-gray-900">
-                {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Pengguna'}
+                {user?.full_name || user?.email?.split('@')[0] || 'Pengguna'}
               </Text>
               <Text className="text-gray-600 text-sm">
                 {user?.email}
