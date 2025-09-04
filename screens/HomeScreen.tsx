@@ -9,6 +9,8 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Linking,
+  Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -35,6 +37,24 @@ interface FoodItemProps {
 }
 
 const FoodItem: React.FC<FoodItemProps> = ({ item, onPress }) => {
+  const openGoogleMaps = (location: string) => {
+    const encodedLocation = encodeURIComponent(location)
+    const url = Platform.select({
+      ios: `maps://app?q=${encodedLocation}`,
+      android: `geo:0,0?q=${encodedLocation}`,
+      default: `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`,
+    })
+    
+    Linking.canOpenURL(url!).then((supported) => {
+      if (supported) {
+        Linking.openURL(url!)
+      } else {
+        // Fallback to web Google Maps
+        const webUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`
+        Linking.openURL(webUrl)
+      }
+    })
+  }
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'available':
@@ -110,9 +130,12 @@ const FoodItem: React.FC<FoodItemProps> = ({ item, onPress }) => {
             {item.description}
           </Text>
 
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="location" size={14} color="#6b7280" />
-            <Text className="text-sm text-gray-500 ml-1 flex-1" numberOfLines={1}>
+          <TouchableOpacity 
+            onPress={() => openGoogleMaps(item.location)}
+            className="flex-row items-center mb-2"
+          >
+            <Ionicons name="location" size={14} color="#ef4444" />
+            <Text className="text-sm text-primary-600 ml-1 flex-1 underline" numberOfLines={1}>
               {item.location}
             </Text>
             {item.distance_km && (
@@ -120,7 +143,7 @@ const FoodItem: React.FC<FoodItemProps> = ({ item, onPress }) => {
                 {item.distance_km.toFixed(1)} km
               </Text>
             )}
-          </View>
+          </TouchableOpacity>
 
           <View className="flex-row justify-between items-center">
             <View className="flex-row items-center">

@@ -135,7 +135,15 @@ export default function MyOrdersScreen() {
               {userBookings.map((booking) => {
                 const food = foods.find(f => f.id === booking.food_id)
                 return (
-                  <View key={booking.id} className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
+                  <TouchableOpacity 
+                    key={booking.id} 
+                    onPress={() => {
+                      if (food?.id) {
+                        navigation.navigate('FoodDetail', { foodId: food.id })
+                      }
+                    }}
+                    className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100"
+                  >
                     <View className="flex-row">
                       <View className="w-16 h-16 bg-gray-200 rounded-lg mr-3 justify-center items-center">
                          <Ionicons name="restaurant" size={24} color="#9CA3AF" />
@@ -172,7 +180,8 @@ export default function MyOrdersScreen() {
                         </View>
                         {booking.status === 'pending' && (
                           <TouchableOpacity
-                            onPress={() => {
+                            onPress={(e) => {
+                              e.stopPropagation() // Prevent parent TouchableOpacity from firing
                               Alert.alert(
                                 'Batalkan Pesanan',
                                 'Apakah Anda yakin ingin membatalkan pesanan ini?',
@@ -193,7 +202,7 @@ export default function MyOrdersScreen() {
                         )}
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 )
               })}
             </ScrollView>

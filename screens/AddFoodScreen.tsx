@@ -30,7 +30,7 @@ interface FormData {
   category: string
   quantity: string
   location: string
-  expired_at: Date
+  expired_at: Date | null
   price_type: 'free' | 'paid'
   price: string
   image_urls: string[]
@@ -59,7 +59,7 @@ const CATEGORIES = [
 export default function AddFoodScreen() {
   const navigation = useNavigation()
   const { user } = useAuthStore()
-  const { createFood, loading } = useFoodStore()
+  const { createFood, isLoading } = useFoodStore()
   
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -67,7 +67,7 @@ export default function AddFoodScreen() {
     category: '',
     quantity: '',
     location: '',
-    expired_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default 24 hours from now
+    expired_at: null, // Default kosong (wajib diisi)
     price_type: 'free',
     price: '',
     image_urls: [],
@@ -151,14 +151,18 @@ export default function AddFoodScreen() {
     }
 
     // Expiry date validation
-    const now = new Date()
-    const minExpiry = new Date(now.getTime() + 30 * 60 * 1000) // 30 minutes from now
-    const maxExpiry = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
-    
-    if (formData.expired_at <= minExpiry) {
-      newErrors.expired_at = 'Waktu kedaluwarsa minimal 30 menit dari sekarang'
-    } else if (formData.expired_at > maxExpiry) {
-      newErrors.expired_at = 'Waktu kedaluwarsa maksimal 7 hari dari sekarang'
+    if (!formData.expired_at) {
+      newErrors.expired_at = 'Waktu kedaluwarsa wajib diisi'
+    } else {
+      const now = new Date()
+      const minExpiry = new Date(now.getTime() + 30 * 60 * 1000) // 30 minutes from now
+      const maxExpiry = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+      
+      if (formData.expired_at <= minExpiry) {
+        newErrors.expired_at = 'Waktu kedaluwarsa minimal 30 menit dari sekarang'
+      } else if (formData.expired_at > maxExpiry) {
+        newErrors.expired_at = 'Waktu kedaluwarsa maksimal 7 hari dari sekarang'
+      }
     }
 
     // Price validation
@@ -290,34 +294,57 @@ export default function AddFoodScreen() {
       return
     }
 
+    if (!formData.expired_at) {
+      Alert.alert('Error', 'Waktu kadaluarsa wajib diisi')
+      return
+    }
+
     try {
-      const foodData = {
-        ...formData,
-        quantity: parseInt(formData.quantity),
-        price: formData.price_type === 'paid' ? parseFloat(formData.price) : 0,
-        image_url: formData.image_urls[0] || null, // Use first image as primary
+      const { user } = useAuthStore.getState()
+      if (!user) {
+        Alert.alert('Error', 'User not authenticated')
+        return
       }
 
-      const { success, error } = await createFood(foodData)
-      
-      if (success) {
-        Alert.alert(
-          'Berhasil!',
-          'Makanan berhasil ditambahkan dan akan segera tersedia untuk dipesan.',
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack()
-            }
-          ]
-        )
-      } else {
-        Alert.alert(
-          'Error',
-          error?.message || 'Gagal menambahkan makanan. Silakan coba lagi.',
-          [{ text: 'OK' }]
-        )
+      const foodData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        unit: 'porsi',
+        pickup_address: formData.location.trim(),
+        pickup_time_start: new Date().toISOString(),
+        pickup_time_end: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        dietary_info: null,
+        allergen_info: null,
+        preparation_notes: null,
+        price_type: formData.price_type,
+        price: formData.price_type === 'paid' ? parseFloat(formData.price) : null,
+        is_featured: false,
+        view_count: 0,
+        donor_id: user.id,
+        expired_at: formData.expired_at.toISOString(),
+        quantity: parseInt(formData.quantity),
+        category: formData.category,
+        location: formData.location.trim(),
+        distance_km: 0,
+        status: 'available' as const,
+        profiles: {
+          full_name: user.full_name || 'Unknown',
+          avatar_url: undefined
+        }
       }
+
+      await createFood(foodData)
+      
+      Alert.alert(
+        'Berhasil!',
+        'Makanan berhasil ditambahkan dan akan segera tersedia untuk dipesan.',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack()
+          }
+        ]
+      )
     } catch (error) {
       console.error('Submit error:', error)
       Alert.alert(
@@ -331,7 +358,8 @@ export default function AddFoodScreen() {
   const onDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false)
     if (selectedDate) {
-      const newDate = new Date(formData.expired_at)
+      const currentTime = formData.expired_at || new Date()
+      const newDate = new Date(currentTime)
       newDate.setFullYear(selectedDate.getFullYear())
       newDate.setMonth(selectedDate.getMonth())
       newDate.setDate(selectedDate.getDate())
@@ -342,7 +370,8 @@ export default function AddFoodScreen() {
   const onTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false)
     if (selectedTime) {
-      const newDate = new Date(formData.expired_at)
+      const currentDate = formData.expired_at || new Date()
+      const newDate = new Date(currentDate)
       newDate.setHours(selectedTime.getHours())
       newDate.setMinutes(selectedTime.getMinutes())
       handleInputChange('expired_at', newDate)
@@ -631,8 +660,8 @@ export default function AddFoodScreen() {
                 errors.expired_at ? 'border border-red-500' : ''
               }`}
             >
-              <Text className="text-gray-800">
-                {format(formData.expired_at, 'dd MMM yyyy', { locale: id })}
+              <Text className={`${formData.expired_at ? 'text-gray-800' : 'text-gray-400'}`}>
+                {formData.expired_at ? format(formData.expired_at, 'dd MMM yyyy', { locale: id }) : 'Pilih tanggal'}
               </Text>
             </TouchableOpacity>
             
@@ -642,8 +671,8 @@ export default function AddFoodScreen() {
                 errors.expired_at ? 'border border-red-500' : ''
               }`}
             >
-              <Text className="text-gray-800">
-                {format(formData.expired_at, 'HH:mm')}
+              <Text className={`${formData.expired_at ? 'text-gray-800' : 'text-gray-400'}`}>
+                {formData.expired_at ? format(formData.expired_at, 'HH:mm') : 'Pilih waktu'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -656,10 +685,10 @@ export default function AddFoodScreen() {
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
-          disabled={loading}
+          disabled={isLoading}
           className="bg-primary-500 py-4 rounded-xl justify-center items-center mb-8"
         >
-          {loading ? (
+          {isLoading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
             <Text className="text-white font-semibold text-lg">Tambah Makanan</Text>
@@ -736,7 +765,7 @@ export default function AddFoodScreen() {
       {/* Date Picker */}
       {showDatePicker && (
         <DateTimePicker
-          value={formData.expired_at}
+          value={formData.expired_at || new Date()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onDateChange}
@@ -748,7 +777,7 @@ export default function AddFoodScreen() {
       {/* Time Picker */}
       {showTimePicker && (
         <DateTimePicker
-          value={formData.expired_at}
+          value={formData.expired_at || new Date()}
           mode="time"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onTimeChange}
