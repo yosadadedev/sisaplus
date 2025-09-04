@@ -165,24 +165,24 @@ export default function FoodDetailScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
+      <View className="flex-row items-center justify-between px-6 py-4 bg-white">
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          className="w-10 h-10 justify-center items-center"
+          className="w-10 h-10 justify-center items-center rounded-full bg-gray-100"
         >
-          <Ionicons name="arrow-back" size={24} color="#374151" />
+          <Ionicons name="arrow-back" size={20} color="#374151" />
         </TouchableOpacity>
         
-        <Text className="text-lg font-semibold text-gray-800">Detail Makanan</Text>
+        <Text className="text-xl font-bold text-gray-900">Detail Makanan</Text>
         
-        <TouchableOpacity className="w-10 h-10 justify-center items-center">
-          <Ionicons name="share-outline" size={24} color="#374151" />
+        <TouchableOpacity className="w-10 h-10 justify-center items-center rounded-full bg-gray-100">
+          <Ionicons name="share-outline" size={20} color="#374151" />
         </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Image */}
-        <View className="h-64 bg-gray-200">
+        <View className="h-80 bg-gray-100 mx-6 mt-4 rounded-2xl overflow-hidden">
           {food.image_url ? (
             <Image
               source={{ uri: food.image_url }}
@@ -191,24 +191,26 @@ export default function FoodDetailScreen() {
             />
           ) : (
             <View className="w-full h-full justify-center items-center">
-              <Ionicons name="image" size={64} color="#9ca3af" />
-              <Text className="text-gray-500 mt-2">Tidak ada foto</Text>
+              <View className="w-20 h-20 bg-gray-200 rounded-full justify-center items-center mb-3">
+                <Ionicons name="image" size={32} color="#9ca3af" />
+              </View>
+              <Text className="text-gray-500 font-medium">Tidak ada foto</Text>
             </View>
           )}
         </View>
 
-        <View className="p-4">
+        <View className="px-6 py-6">
           {/* Status Badge */}
-          <View className="flex-row justify-between items-start mb-4">
-            <View className={`px-3 py-1 rounded-full ${getStatusColor(food.status)}`}>
-              <Text className="text-white font-medium text-sm">
+          <View className="flex-row justify-between items-center mb-6">
+            <View className={`px-4 py-2 rounded-full ${getStatusColor(food.status)}`}>
+              <Text className="text-white font-semibold text-sm">
                 {getStatusText(food.status)}
               </Text>
             </View>
             
             {isExpired && (
-              <View className="bg-danger-100 px-3 py-1 rounded-full">
-                <Text className="text-danger-800 font-medium text-sm">
+              <View className="bg-red-100 px-4 py-2 rounded-full">
+                <Text className="text-red-700 font-semibold text-sm">
                   Kedaluwarsa
                 </Text>
               </View>
@@ -216,75 +218,84 @@ export default function FoodDetailScreen() {
           </View>
 
           {/* Title and Description */}
-          <Text className="text-2xl font-bold text-gray-800 mb-2">
+          <Text className="text-3xl font-bold text-gray-900 mb-3">
             {food.title}
           </Text>
           
-          <Text className="text-gray-600 text-base leading-6 mb-6">
+          <Text className="text-gray-600 text-lg leading-7 mb-8">
             {food.description}
           </Text>
 
           {/* Info Cards */}
-          <View className="space-y-4 mb-6">
-            {/* Quantity */}
-            <View className="bg-primary-50 p-4 rounded-xl">
-              <View className="flex-row items-center">
-                <Ionicons name="restaurant" size={20} color="#0ea5e9" />
-                <Text className="text-primary-800 font-semibold ml-2">Jumlah Porsi</Text>
+          <View className="mb-8">
+            {/* Quick Info Row */}
+            <View className="flex-row mb-6">
+              <View className="flex-1 bg-blue-50 p-4 rounded-2xl mr-3">
+                <View className="flex-row items-center mb-2">
+                  <View className="w-8 h-8 bg-blue-500 rounded-full justify-center items-center">
+                    <Ionicons name="restaurant" size={16} color="white" />
+                  </View>
+                  <Text className="text-blue-900 font-semibold ml-2 text-sm">Porsi</Text>
+                </View>
+                <Text className="text-blue-800 text-xl font-bold">
+                  {food.quantity}
+                </Text>
               </View>
-              <Text className="text-primary-700 text-lg font-bold mt-1">
-                {food.quantity} porsi
-              </Text>
+
+              <View className="flex-1 bg-purple-50 p-4 rounded-2xl">
+                <View className="flex-row items-center mb-2">
+                  <View className="w-8 h-8 bg-purple-500 rounded-full justify-center items-center">
+                    <Ionicons name="pricetag" size={16} color="white" />
+                  </View>
+                  <Text className="text-purple-900 font-semibold ml-2 text-sm">Kategori</Text>
+                </View>
+                <Text className="text-purple-800 text-sm font-bold capitalize" numberOfLines={1}>
+                  {food.category ? food.category.replace('-', ' ') : 'Lainnya'}
+                </Text>
+              </View>
             </View>
 
-            {/* Category */}
-            <View className="bg-secondary-50 p-4 rounded-xl">
-              <View className="flex-row items-center">
-                <Ionicons name="pricetag" size={20} color="#eab308" />
-                <Text className="text-secondary-800 font-semibold ml-2">Kategori</Text>
-              </View>
-              <Text className="text-secondary-700 text-lg font-bold mt-1 capitalize">
-                {food.category ? food.category.replace('-', ' ') : 'Tidak ada kategori'}
-              </Text>
-            </View>
-
-            {/* Location */}
-            <View className="bg-success-50 p-4 rounded-xl">
+            {/* Location Card */}
+            <View className="bg-green-50 p-5 rounded-2xl mb-4">
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
-                  <View className="flex-row items-center">
-                    <Ionicons name="location" size={20} color="#22c55e" />
-                    <Text className="text-success-800 font-semibold ml-2">Lokasi</Text>
+                  <View className="flex-row items-center mb-2">
+                    <View className="w-8 h-8 bg-green-500 rounded-full justify-center items-center">
+                      <Ionicons name="location" size={16} color="white" />
+                    </View>
+                    <Text className="text-green-900 font-bold ml-2">Lokasi Pengambilan</Text>
                   </View>
-                  <Text className="text-success-700 text-base mt-1">
+                  <Text className="text-green-800 text-base font-medium mb-1">
                     {food.location}
                   </Text>
                   {food.distance_km && (
-                    <Text className="text-success-600 text-sm mt-1">
-                      {food.distance_km.toFixed(1)} km dari Anda
+                    <Text className="text-green-600 text-sm">
+                      {food.distance_km.toFixed(1)} km dari lokasi Anda
                     </Text>
                   )}
                 </View>
                 
                 <TouchableOpacity
                   onPress={handleGetDirections}
-                  className="bg-success-500 px-3 py-2 rounded-lg"
+                  className="bg-green-500 px-4 py-3 rounded-xl ml-3"
                 >
-                  <Text className="text-white font-medium text-sm">Rute</Text>
+                  <Ionicons name="navigate" size={18} color="white" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Expiry Time */}
-            <View className="bg-orange-50 p-4 rounded-xl">
-              <View className="flex-row items-center">
-                <Ionicons name="time" size={20} color="#f97316" />
-                <Text className="text-orange-800 font-semibold ml-2">Kedaluwarsa</Text>
+            {/* Expiry Time Card */}
+            <View className="bg-orange-50 p-5 rounded-2xl">
+              <View className="flex-row items-center mb-2">
+                <View className="w-8 h-8 bg-orange-500 rounded-full justify-center items-center">
+                  <Ionicons name="time" size={16} color="white" />
+                </View>
+                <Text className="text-orange-900 font-bold ml-2">Batas Waktu</Text>
               </View>
-              <Text className="text-orange-700 text-base mt-1">
-                {food.expired_at ? format(new Date(food.expired_at), 'dd MMMM yyyy, HH:mm', { locale: id }) : 'Tanggal tidak valid'}
+              <Text className="text-orange-800 text-base font-semibold mb-1">
+                {food.expired_at ? format(new Date(food.expired_at), 'EEEE, dd MMMM yyyy', { locale: id }) : 'Tanggal tidak valid'}
               </Text>
-              <Text className="text-orange-600 text-sm mt-1">
+              <Text className="text-orange-600 text-sm">
                 {food.expired_at ? formatDistanceToNow(new Date(food.expired_at), {
                   addSuffix: true,
                   locale: id,
@@ -294,12 +305,12 @@ export default function FoodDetailScreen() {
           </View>
 
           {/* Donor Info */}
-          <View className="bg-gray-50 p-4 rounded-xl mb-6">
-            <Text className="text-gray-800 font-semibold mb-3">Donor</Text>
+          <View className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+            <Text className="text-gray-900 font-bold text-lg mb-4">Informasi Donor</Text>
             
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
-                <View className="w-12 h-12 bg-primary-100 rounded-full justify-center items-center mr-3">
+                <View className="w-14 h-14 bg-blue-100 rounded-full justify-center items-center mr-4">
                   {food.profiles?.avatar_url ? (
                     <Image
                       source={{ uri: food.profiles.avatar_url }}
@@ -307,19 +318,19 @@ export default function FoodDetailScreen() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <Ionicons name="person" size={20} color="#0ea5e9" />
+                    <Ionicons name="person" size={24} color="#3b82f6" />
                   )}
                 </View>
                 
                 <View className="flex-1">
-                  <Text className="text-gray-800 font-medium">
+                  <Text className="text-gray-900 font-bold text-base">
                     {food.profiles?.full_name || 'Anonymous'}
                   </Text>
-                  <Text className="text-gray-500 text-sm">
-                    Bergabung {food.created_at ? formatDistanceToNow(new Date(food.created_at), {
+                  <Text className="text-gray-500 text-sm mt-1">
+                    Berbagi {food.created_at ? formatDistanceToNow(new Date(food.created_at), {
                       addSuffix: true,
                       locale: id,
-                    }) : 'tanggal tidak diketahui'}
+                    }) : 'baru-baru ini'}
                   </Text>
                 </View>
               </View>
@@ -327,9 +338,12 @@ export default function FoodDetailScreen() {
               {!isOwner && (
                 <TouchableOpacity
                   onPress={handleContactDonor}
-                  className="bg-success-500 px-4 py-2 rounded-lg"
+                  className="bg-green-500 px-5 py-3 rounded-xl"
                 >
-                  <Text className="text-white font-medium text-sm">Hubungi</Text>
+                  <View className="flex-row items-center">
+                    <Ionicons name="chatbubble" size={16} color="white" />
+                    <Text className="text-white font-semibold text-sm ml-1">Chat</Text>
+                  </View>
                 </TouchableOpacity>
               )}
             </View>
@@ -339,16 +353,26 @@ export default function FoodDetailScreen() {
 
       {/* Bottom Action */}
       {canBook && (
-        <View className="p-4 border-t border-gray-100">
+        <View className="px-6 py-6 bg-white border-t border-gray-100">
           <TouchableOpacity
             onPress={() => setShowBookingModal(true)}
             disabled={isLoading}
-            className="bg-primary-500 py-4 rounded-xl justify-center items-center"
+            className="bg-blue-500 py-4 rounded-2xl justify-center items-center shadow-lg"
+            style={{
+              shadowColor: '#3b82f6',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+            }}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <Text className="text-white font-semibold text-lg">Pesan Makanan</Text>
+              <View className="flex-row items-center">
+                <Ionicons name="restaurant" size={20} color="white" />
+                <Text className="text-white font-bold text-lg ml-2">Pesan Makanan Ini</Text>
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -361,20 +385,27 @@ export default function FoodDetailScreen() {
         animationType="slide"
         onRequestClose={() => setShowBookingModal(false)}
       >
-        <View className="flex-1 bg-black/50 justify-end">
+        <View className="flex-1 bg-black/60 justify-end">
           <View className="bg-white rounded-t-3xl p-6">
+            {/* Modal Header */}
             <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-xl font-bold text-gray-800">Pesan Makanan</Text>
+              <Text className="text-2xl font-bold text-gray-900">Konfirmasi Pesanan</Text>
               <TouchableOpacity
                 onPress={() => setShowBookingModal(false)}
-                className="w-8 h-8 justify-center items-center"
+                className="w-10 h-10 justify-center items-center rounded-full bg-gray-100"
               >
-                <Ionicons name="close" size={24} color="#6b7280" />
+                <Ionicons name="close" size={20} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
-            <Text className="text-gray-600 mb-4">
-              Kirim pesan kepada donor (opsional):
+            {/* Food Summary */}
+            <View className="bg-gray-50 p-4 rounded-2xl mb-6">
+              <Text className="text-gray-900 font-bold text-lg mb-1">{food.title}</Text>
+              <Text className="text-gray-600">{food.quantity} porsi • {food.location}</Text>
+            </View>
+
+            <Text className="text-gray-700 font-semibold mb-3">
+              Pesan untuk donor (opsional):
             </Text>
 
             <TextInput
@@ -383,27 +414,27 @@ export default function FoodDetailScreen() {
               placeholder="Contoh: Saya akan mengambil makanan dalam 30 menit..."
               multiline
               numberOfLines={4}
-              className="bg-gray-100 p-4 rounded-xl text-gray-800 mb-6"
+              className="bg-gray-50 p-4 rounded-2xl text-gray-800 mb-6 border border-gray-200"
               textAlignVertical="top"
             />
 
             <View className="flex-row space-x-3">
               <TouchableOpacity
                 onPress={() => setShowBookingModal(false)}
-                className="flex-1 bg-gray-200 py-4 rounded-xl justify-center items-center"
+                className="flex-1 bg-gray-100 py-4 rounded-2xl justify-center items-center"
               >
-                <Text className="text-gray-700 font-semibold">Batal</Text>
+                <Text className="text-gray-700 font-bold">Batal</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 onPress={handleBookFood}
                 disabled={bookingLoading}
-                className="flex-1 bg-primary-500 py-4 rounded-xl justify-center items-center"
+                className="flex-1 bg-blue-500 py-4 rounded-2xl justify-center items-center"
               >
                 {bookingLoading ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text className="text-white font-semibold">Konfirmasi Pesanan</Text>
+                  <Text className="text-white font-bold">Konfirmasi Pesanan</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -418,13 +449,13 @@ export default function FoodDetailScreen() {
         presentationStyle="pageSheet"
       >
         <SafeAreaView className="flex-1 bg-white">
-          <View className="flex-row items-center justify-between p-4 border-b border-gray-200">
-            <Text className="text-lg font-semibold text-gray-900">Rute ke Lokasi</Text>
+          <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-100">
+            <Text className="text-xl font-bold text-gray-900">Rute ke Lokasi</Text>
             <TouchableOpacity
               onPress={() => setShowWebView(false)}
-              className="p-2"
+              className="w-10 h-10 justify-center items-center rounded-full bg-gray-100"
             >
-              <Ionicons name="close" size={24} color="#374151" />
+              <Ionicons name="close" size={20} color="#374151" />
             </TouchableOpacity>
           </View>
           
@@ -433,9 +464,12 @@ export default function FoodDetailScreen() {
             style={{ flex: 1 }}
             startInLoadingState={true}
             renderLoading={() => (
-              <View className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" color="#22c55e" />
-                <Text className="text-gray-600 mt-2">Memuat peta...</Text>
+              <View className="flex-1 justify-center items-center bg-gray-50">
+                <View className="w-16 h-16 bg-green-100 rounded-full justify-center items-center mb-4">
+                  <ActivityIndicator size="large" color="#22c55e" />
+                </View>
+                <Text className="text-gray-700 font-semibold">Memuat peta...</Text>
+                <Text className="text-gray-500 text-sm mt-1">Mohon tunggu sebentar</Text>
               </View>
             )}
           />
