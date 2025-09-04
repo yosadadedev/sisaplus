@@ -165,37 +165,27 @@ export default function HomeScreen() {
   const { user } = useAuthStore()
   const {
     foods,
-    loading,
-    refreshing,
-    selectedCategory,
-    searchQuery,
+    isLoading,
     loadFoods,
-    refreshFoods,
-    setCategory,
-    setSearchQuery,
-    getUserLocation,
-    subscribeToFoods,
   } = useFoodStore()
 
   const [searchText, setSearchText] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     if (user) {
       loadFoods()
-      getUserLocation()
-      
-      // Subscribe to real-time updates
-      const unsubscribe = subscribeToFoods()
-      return unsubscribe
     }
   }, [user])
 
   const handleSearch = useCallback(() => {
-    setSearchQuery(searchText)
-  }, [searchText, setSearchQuery])
+    loadFoods(undefined, searchText)
+  }, [searchText, loadFoods])
 
   const handleCategoryPress = (categoryId: string | null) => {
-    setCategory(categoryId)
+    setSelectedCategory(categoryId)
+    loadFoods(categoryId || undefined, searchText)
   }
 
   const handleFoodPress = (food: any) => {
@@ -265,7 +255,6 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => {
                 setSearchText('')
-                setSearchQuery('')
               }}
             >
               <Ionicons name="close-circle" size={20} color="#6b7280" />
@@ -288,7 +277,7 @@ export default function HomeScreen() {
 
       {/* Foods List */}
       <View className="flex-1 px-4">
-        {loading && foods.length === 0 ? (
+        {isLoading && foods.length === 0 ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#0ea5e9" />
             <Text className="mt-4 text-gray-600">Memuat makanan...</Text>
@@ -301,7 +290,10 @@ export default function HomeScreen() {
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
-                onRefresh={refreshFoods}
+                onRefresh={() => {
+                  setRefreshing(true)
+                  loadFoods(selectedCategory || undefined, searchText).finally(() => setRefreshing(false))
+                }}
                 colors={['#0ea5e9']}
                 tintColor="#0ea5e9"
               />

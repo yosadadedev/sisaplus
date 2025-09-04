@@ -36,6 +36,7 @@ export interface Food {
   donor_id: string;
   created_at: string;
   updated_at: string;
+  expired_at: string;
 }
 
 export interface Booking {
@@ -91,6 +92,7 @@ export const initializeDatabase = () => {
             donor_id TEXT NOT NULL,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
+            expired_at TEXT NOT NULL,
             FOREIGN KEY (donor_id) REFERENCES users (id)
           );`
         );

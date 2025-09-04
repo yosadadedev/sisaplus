@@ -9,8 +9,8 @@ const DUMMY_FOODS: Food[] = [
     description: 'Gudeg khas Yogyakarta dengan ayam dan telur, masih hangat dan segar',
     unit: 'porsi',
     pickup_address: 'Jl. Malioboro No. 123, Yogyakarta',
-    pickup_time_start: '18:00',
-    pickup_time_end: '20:00',
+    pickup_time_start: '2024-01-15T18:00:00.000Z',
+    pickup_time_end: '2024-01-15T20:00:00.000Z',
     dietary_info: 'Halal, tidak pedas',
     allergen_info: 'Mengandung telur',
     preparation_notes: 'Disajikan dengan nasi putih hangat',
@@ -20,7 +20,8 @@ const DUMMY_FOODS: Food[] = [
     view_count: 45,
     donor_id: 'donor1',
     created_at: '2024-01-15T10:00:00Z',
-    updated_at: '2024-01-15T10:00:00Z'
+    updated_at: '2024-01-15T10:00:00Z',
+    expired_at: '2024-01-16T20:00:00Z'
   },
   {
     id: '2',
@@ -28,8 +29,8 @@ const DUMMY_FOODS: Food[] = [
     description: 'Soto ayam dengan kuah bening, dilengkapi dengan telur dan kerupuk',
     unit: 'mangkok',
     pickup_address: 'Jl. Sudirman No. 456, Jakarta',
-    pickup_time_start: '11:00',
-    pickup_time_end: '13:00',
+    pickup_time_start: '2024-01-15T11:00:00.000Z',
+    pickup_time_end: '2024-01-15T13:00:00.000Z',
     dietary_info: 'Halal, sedikit pedas',
     allergen_info: 'Mengandung telur dan gluten',
     preparation_notes: 'Kuah masih panas, siap santap',
@@ -39,7 +40,8 @@ const DUMMY_FOODS: Food[] = [
     view_count: 23,
     donor_id: 'donor2',
     created_at: '2024-01-15T08:30:00Z',
-    updated_at: '2024-01-15T08:30:00Z'
+    updated_at: '2024-01-15T08:30:00Z',
+    expired_at: '2024-01-16T13:00:00Z'
   },
   {
     id: '3',
@@ -47,8 +49,8 @@ const DUMMY_FOODS: Food[] = [
     description: 'Gado-gado dengan sayuran segar dan bumbu kacang yang gurih',
     unit: 'porsi',
     pickup_address: 'Jl. Thamrin No. 789, Jakarta',
-    pickup_time_start: '12:00',
-    pickup_time_end: '14:00',
+    pickup_time_start: '2024-01-15T12:00:00.000Z',
+    pickup_time_end: '2024-01-15T14:00:00.000Z',
     dietary_info: 'Vegetarian, halal',
     allergen_info: 'Mengandung kacang',
     preparation_notes: 'Bumbu kacang terpisah untuk menjaga kesegaran',
@@ -58,7 +60,8 @@ const DUMMY_FOODS: Food[] = [
     view_count: 67,
     donor_id: 'donor3',
     created_at: '2024-01-15T09:15:00Z',
-    updated_at: '2024-01-15T09:15:00Z'
+    updated_at: '2024-01-15T09:15:00Z',
+    expired_at: '2024-01-16T14:00:00Z'
   }
 ];
 
@@ -69,8 +72,8 @@ const DUMMY_MY_DONATIONS: Food[] = [
     description: 'Rendang daging sapi khas Padang yang empuk dan bumbu meresap',
     unit: 'porsi',
     pickup_address: 'Jl. Asia Afrika No. 101, Bandung',
-    pickup_time_start: '19:00',
-    pickup_time_end: '21:00',
+    pickup_time_start: '2024-01-14T19:00:00.000Z',
+    pickup_time_end: '2024-01-14T21:00:00.000Z',
     dietary_info: 'Halal, pedas sedang',
     allergen_info: 'Tidak ada',
     preparation_notes: 'Masih hangat, siap untuk dibagikan',
@@ -80,7 +83,8 @@ const DUMMY_MY_DONATIONS: Food[] = [
     view_count: 12,
     donor_id: 'current_user',
     created_at: '2024-01-14T16:00:00Z',
-    updated_at: '2024-01-14T16:00:00Z'
+    updated_at: '2024-01-14T16:00:00Z',
+    expired_at: '2024-01-15T21:00:00Z'
   },
   {
     id: '5',
@@ -88,8 +92,8 @@ const DUMMY_MY_DONATIONS: Food[] = [
     description: 'Bakso dengan berbagai isian, kuah hangat dan mie',
     unit: 'mangkok',
     pickup_address: 'Jl. Diponegoro No. 202, Malang',
-    pickup_time_start: '17:30',
-    pickup_time_end: '19:30',
+    pickup_time_start: '2024-01-14T17:30:00.000Z',
+    pickup_time_end: '2024-01-14T19:30:00.000Z',
     dietary_info: 'Halal',
     allergen_info: 'Mengandung gluten',
     preparation_notes: 'Kuah panas, bakso fresh',
@@ -99,7 +103,8 @@ const DUMMY_MY_DONATIONS: Food[] = [
     view_count: 34,
     donor_id: 'current_user',
     created_at: '2024-01-14T14:30:00Z',
-    updated_at: '2024-01-14T14:30:00Z'
+    updated_at: '2024-01-14T14:30:00Z',
+    expired_at: '2024-01-15T19:30:00Z'
   }
 ];
 

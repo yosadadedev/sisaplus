@@ -29,7 +29,7 @@ export default function FoodDetailScreen() {
   const navigation = useNavigation()
   const { foodId } = route.params as RouteParams
   const { user } = useAuthStore()
-  const { foods, bookFood, loading } = useFoodStore()
+  const { foods, bookFood, isLoading } = useFoodStore()
   
   const [food, setFood] = useState<any>(null)
   const [showBookingModal, setShowBookingModal] = useState(false)
@@ -48,34 +48,26 @@ export default function FoodDetailScreen() {
 
     try {
       setBookingLoading(true)
-      const { success, error } = await bookFood(food.id, bookingMessage)
+      await bookFood(food.id, user.id, bookingMessage)
       
-      if (success) {
-        Alert.alert(
-          'Berhasil!',
-          'Makanan berhasil dipesan. Donor akan segera menghubungi Anda.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setShowBookingModal(false)
-                navigation.goBack()
-              }
+      Alert.alert(
+        'Berhasil!',
+        'Makanan berhasil dipesan. Donor akan segera menghubungi Anda.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowBookingModal(false)
+              navigation.goBack()
             }
-          ]
-        )
-      } else {
-        Alert.alert(
-          'Error',
-          error?.message || 'Gagal memesan makanan. Silakan coba lagi.',
-          [{ text: 'OK' }]
-        )
-      }
+          }
+        ]
+      )
     } catch (error) {
       console.error('Booking error:', error)
       Alert.alert(
         'Error',
-        'Terjadi kesalahan. Silakan coba lagi.',
+        'Terjadi kesalahan saat memesan makanan. Silakan coba lagi.',
         [{ text: 'OK' }]
       )
     } finally {
@@ -252,7 +244,7 @@ export default function FoodDetailScreen() {
                 <Text className="text-secondary-800 font-semibold ml-2">Kategori</Text>
               </View>
               <Text className="text-secondary-700 text-lg font-bold mt-1 capitalize">
-                {food.category.replace('-', ' ')}
+                {food.category ? food.category.replace('-', ' ') : 'Tidak ada kategori'}
               </Text>
             </View>
 
@@ -290,13 +282,13 @@ export default function FoodDetailScreen() {
                 <Text className="text-orange-800 font-semibold ml-2">Kedaluwarsa</Text>
               </View>
               <Text className="text-orange-700 text-base mt-1">
-                {format(new Date(food.expired_at), 'dd MMMM yyyy, HH:mm', { locale: id })}
+                {food.expired_at ? format(new Date(food.expired_at), 'dd MMMM yyyy, HH:mm', { locale: id }) : 'Tanggal tidak valid'}
               </Text>
               <Text className="text-orange-600 text-sm mt-1">
-                {formatDistanceToNow(new Date(food.expired_at), {
+                {food.expired_at ? formatDistanceToNow(new Date(food.expired_at), {
                   addSuffix: true,
                   locale: id,
-                })}
+                }) : 'Waktu tidak valid'}
               </Text>
             </View>
           </View>
@@ -324,10 +316,10 @@ export default function FoodDetailScreen() {
                     {food.profiles?.full_name || 'Anonymous'}
                   </Text>
                   <Text className="text-gray-500 text-sm">
-                    Bergabung {formatDistanceToNow(new Date(food.created_at), {
+                    Bergabung {food.created_at ? formatDistanceToNow(new Date(food.created_at), {
                       addSuffix: true,
                       locale: id,
-                    })}
+                    }) : 'tanggal tidak diketahui'}
                   </Text>
                 </View>
               </View>
@@ -350,10 +342,10 @@ export default function FoodDetailScreen() {
         <View className="p-4 border-t border-gray-100">
           <TouchableOpacity
             onPress={() => setShowBookingModal(true)}
-            disabled={loading}
+            disabled={isLoading}
             className="bg-primary-500 py-4 rounded-xl justify-center items-center"
           >
-            {loading ? (
+            {isLoading ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
               <Text className="text-white font-semibold text-lg">Pesan Makanan</Text>

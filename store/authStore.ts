@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { db, generateId, getCurrentTimestamp, User } from '../lib/database';
+import { db, generateId, getCurrentTimestamp, User, initializeDatabase } from '../lib/database';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthState {
@@ -69,6 +69,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async () => {
     try {
       set({ loading: true });
+      
+      // Initialize database tables first
+      await initializeDatabase();
       
       // Check if user is logged in from AsyncStorage
       const storedUser = await AsyncStorage.getItem('currentUser');
