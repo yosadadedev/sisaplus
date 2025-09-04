@@ -12,6 +12,7 @@ interface FoodStore {
   selectedCategory: string | null;
   myDonations: Food[];
   userBookings: BookingWithFood[];
+  incomingBookings: BookingWithFood[];
   isLoading: boolean;
   error: string | null;
 
@@ -23,6 +24,7 @@ interface FoodStore {
   loadFoods: (category?: string, searchQuery?: string) => Promise<void>;
   loadMyDonations: () => Promise<void>;
   loadUserBookings: () => Promise<void>;
+  loadIncomingBookings: () => Promise<void>;
   createFood: (food: Omit<Food, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   bookFood: (foodId: string, userId: string, notes?: string) => Promise<void>;
   updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
@@ -43,6 +45,7 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
   selectedCategory: null,
   myDonations: [],
   userBookings: [],
+  incomingBookings: [],
   isLoading: false,
   error: null,
   foodsListener: null,
@@ -100,7 +103,19 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
       const currentUser = useAuthStore.getState().user;
       
       // Filter out user's own donations
-      let filteredFoods = foods.filter(food => food.donor_id !== currentUser?.id);
+      const allFoods = foods.filter(food => food.donor_id !== currentUser?.id);
+
+      // Update selectedCategory if category parameter is provided
+      if (category !== undefined) {
+        set({ selectedCategory: category });
+      }
+
+      // Get the active category (from parameter or current state)
+      const { selectedCategory } = get();
+      const activeCategory = category !== undefined ? category : selectedCategory;
+
+      // Apply filters
+      let filteredFoods = allFoods;
 
       // Apply search filter if provided
       if (searchQuery && searchQuery.trim()) {
@@ -112,15 +127,12 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
         );
       }
 
-      // Apply category filter - use parameter category or selectedCategory from state
-      const { selectedCategory } = get();
-      const activeCategory = category !== undefined ? category : selectedCategory;
-
-      if (activeCategory && activeCategory !== 'all') {
+      // Apply category filter
+      if (activeCategory && activeCategory !== null && activeCategory !== 'all') {
         filteredFoods = filteredFoods.filter((food) => food.category === activeCategory);
       }
 
-      set({ foods: filteredFoods, filteredFoods: filteredFoods, isLoading: false });
+      set({ foods: allFoods, filteredFoods: filteredFoods, isLoading: false });
     } catch (error) {
       console.error('Error loading foods:', error);
       // Don't fallback to dummy data as it causes booking errors
@@ -246,6 +258,87 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
     }
   },
 
+  loadIncomingBookings: async () => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const { user } = useAuthStore.getState();
+      if (!user?.id) {
+        set({ incomingBookings: [], isLoading: false });
+        return;
+      }
+
+      const firebaseBookings = await bookingService.getBookingsBySeller(user.id);
+      
+      // Convert Firebase bookings to local format and fetch food details
+      const bookingsWithFood = await Promise.all(
+        firebaseBookings.map(async (firebaseBooking) => {
+          try {
+            const booking = {
+              id: firebaseBooking.id,
+              food_id: firebaseBooking.foodId,
+              user_id: firebaseBooking.buyerId,
+              status: firebaseBooking.status,
+              pickup_time: firebaseBooking.pickupTime?.toDate().toISOString() || null,
+              notes: firebaseBooking.notes || null,
+              created_at: firebaseBooking.createdAt.toDate().toISOString(),
+              updated_at: firebaseBooking.updatedAt.toDate().toISOString(),
+            } as Booking;
+
+            const food = await foodService.getFoodById(booking.food_id);
+            return {
+              ...booking,
+              food: food || {
+                id: booking.food_id,
+                title: firebaseBooking.foodName || 'Makanan tidak ditemukan',
+                description: '',
+                unit: '',
+                pickup_address: '',
+                pickup_time_start: '',
+                pickup_time_end: '',
+                dietary_info: null,
+                allergen_info: null,
+                preparation_notes: null,
+                price_type: 'free' as const,
+                price: null,
+                is_featured: false,
+                view_count: 0,
+                donor_id: user.id,
+                created_at: '',
+                updated_at: '',
+                expired_at: '',
+                quantity: 0,
+                category: '',
+                location: '',
+                distance_km: 0,
+                status: 'completed' as const,
+                profiles: {
+                  full_name: firebaseBooking.buyerName || 'Pembeli tidak ditemukan',
+                  avatar_url: undefined,
+                },
+              } as Food,
+            } as BookingWithFood;
+          } catch (error) {
+            console.error('Error processing incoming booking:', firebaseBooking.id, error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out null values
+      const validBookings = bookingsWithFood.filter((booking): booking is BookingWithFood => booking !== null);
+      
+      set({ incomingBookings: validBookings, isLoading: false });
+    } catch (error) {
+      console.error('Error loading incoming bookings:', error);
+      if (error instanceof Error && error.message.includes('index')) {
+        console.log('Firebase index is still building. Please wait a few minutes and try again.');
+      }
+      // Set empty array to prevent UI issues
+      set({ incomingBookings: [], error: 'Failed to load incoming bookings', isLoading: false });
+    }
+  },
+
   createFood: async (foodData) => {
     set({ isLoading: true, error: null });
 
@@ -327,8 +420,12 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
 
   setCategory: (category: string | null) => {
     const { foods } = get();
-    const filteredFoods =
-      category && category !== 'all' ? foods.filter((food) => food.category === category) : foods;
+    let filteredFoods = foods;
+
+    // Apply category filter
+    if (category && category !== null && category !== 'all') {
+      filteredFoods = foods.filter((food) => food.category === category);
+    }
 
     set({
       selectedCategory: category,

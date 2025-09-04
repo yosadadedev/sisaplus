@@ -10,7 +10,7 @@ import { id } from 'date-fns/locale';
 import { Food } from '../lib/database';
 import { MyOrdersScreenNavigationProp } from '../types/navigation';
 
-type TabType = 'donations' | 'orders';
+type TabType = 'donations' | 'orders' | 'incoming';
 
 export default function MyOrdersScreen() {
   const isFocused = useIsFocused();
@@ -20,8 +20,10 @@ export default function MyOrdersScreen() {
     foods,
     userBookings,
     myDonations,
+    incomingBookings,
     loadUserBookings,
     loadMyDonations,
+    loadIncomingBookings,
     updateBookingStatus,
   } = useFoodStore();
 
@@ -34,6 +36,7 @@ export default function MyOrdersScreen() {
       const timer = setTimeout(() => {
         loadUserBookings();
         loadMyDonations();
+        loadIncomingBookings();
       }, 100);
 
       return () => clearTimeout(timer);
@@ -46,6 +49,7 @@ export default function MyOrdersScreen() {
       if (user?.id) {
         await loadUserBookings();
         await loadMyDonations();
+        await loadIncomingBookings();
       }
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -67,11 +71,11 @@ export default function MyOrdersScreen() {
         <View className="flex-row">
           <TouchableOpacity
             onPress={() => setActiveTab('orders')}
-            className={`mr-2 flex-1 rounded-lg px-4 py-3 ${
+            className={`mr-1 flex-1 rounded-lg px-3 py-3 ${
               activeTab === 'orders' ? 'bg-blue-500' : 'bg-gray-100'
             }`}>
             <Text
-              className={`text-center font-medium ${
+              className={`text-center font-medium text-xs ${
                 activeTab === 'orders' ? 'text-white' : 'text-gray-700'
               }`}>
               Pesanan Saya
@@ -80,14 +84,27 @@ export default function MyOrdersScreen() {
 
           <TouchableOpacity
             onPress={() => setActiveTab('donations')}
-            className={`ml-2 flex-1 rounded-lg px-4 py-3 ${
+            className={`mx-1 flex-1 rounded-lg px-3 py-3 ${
               activeTab === 'donations' ? 'bg-blue-500' : 'bg-gray-100'
             }`}>
             <Text
-              className={`text-center font-medium ${
+              className={`text-center font-medium text-xs ${
                 activeTab === 'donations' ? 'text-white' : 'text-gray-700'
               }`}>
               Donasi Saya
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setActiveTab('incoming')}
+            className={`ml-1 flex-1 rounded-lg px-3 py-3 ${
+              activeTab === 'incoming' ? 'bg-blue-500' : 'bg-gray-100'
+            }`}>
+            <Text
+              className={`text-center font-medium text-xs ${
+                activeTab === 'incoming' ? 'text-white' : 'text-gray-700'
+              }`}>
+              Booking Masuk
             </Text>
           </TouchableOpacity>
         </View>
@@ -95,7 +112,134 @@ export default function MyOrdersScreen() {
 
       {/* Content */}
       <View className="flex-1">
-        {activeTab === 'orders' ? (
+        {activeTab === 'incoming' ? (
+          incomingBookings.length === 0 ? (
+            <View className="flex-1 items-center justify-center px-4">
+              <Ionicons name="notifications-outline" size={64} color="#9CA3AF" />
+              <Text className="mt-4 text-center text-lg font-medium text-gray-500">
+                Belum ada booking masuk
+              </Text>
+              <Text className="mt-2 text-center text-sm text-gray-400">
+                Booking dari pembeli akan muncul di sini
+              </Text>
+            </View>
+          ) : (
+            <ScrollView
+              className="flex-1 px-4"
+              showsVerticalScrollIndicator={false}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+              {incomingBookings.map((booking) => (
+                <View
+                  key={booking.id}
+                  className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                  <View className="flex-row">
+                    <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
+                      {booking.food?.image_urls && booking.food.image_urls.length > 0 && booking.food.image_urls[0] ? (
+                        <Image 
+                          source={{ uri: booking.food.image_urls[0] }} 
+                          className="h-full w-full" 
+                          resizeMode="cover" 
+                          onError={() => console.log('Error loading image:', booking.food?.image_urls?.[0])}
+                        />
+                      ) : (
+                        <View className="h-full w-full items-center justify-center">
+                          <Ionicons name="restaurant" size={24} color="#9CA3AF" />
+                        </View>
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-gray-900">
+                        {booking.food?.title || 'Makanan tidak ditemukan'}
+                      </Text>
+                      <Text className="mt-1 text-sm text-gray-600">
+                        Pembeli: {booking.food?.profiles?.full_name || 'Tidak diketahui'}
+                      </Text>
+                      {booking.notes && (
+                        <Text className="mt-1 text-sm text-gray-500">
+                          Catatan: {booking.notes}
+                        </Text>
+                      )}
+                      <Text className="mt-1 text-xs text-gray-500">
+                        {booking.created_at
+                          ? formatDistanceToNow(new Date(booking.created_at), {
+                              addSuffix: true,
+                              locale: id,
+                            })
+                          : 'Waktu tidak tersedia'}
+                      </Text>
+                    </View>
+                    <View className="items-end justify-between">
+                      <View
+                        className={`rounded-full px-2 py-1 ${
+                          booking.status === 'confirmed'
+                            ? 'bg-green-100'
+                            : booking.status === 'pending'
+                              ? 'bg-yellow-100'
+                              : 'bg-red-100'
+                        }`}>
+                        <Text
+                          className={`text-xs font-medium ${
+                            booking.status === 'confirmed'
+                              ? 'text-green-800'
+                              : booking.status === 'pending'
+                                ? 'text-yellow-800'
+                                : 'text-red-800'
+                          }`}>
+                          {booking.status === 'confirmed'
+                            ? 'Dikonfirmasi'
+                            : booking.status === 'pending'
+                              ? 'Menunggu'
+                              : booking.status === 'cancelled'
+                                ? 'Dibatalkan'
+                                : 'Selesai'}
+                        </Text>
+                      </View>
+                      {booking.status === 'pending' && (
+                        <View className="mt-2 flex-row">
+                          <TouchableOpacity
+                            onPress={() => {
+                              Alert.alert(
+                                'Tolak Booking',
+                                'Apakah Anda yakin ingin menolak booking ini?',
+                                [
+                                  { text: 'Batal', style: 'cancel' },
+                                  {
+                                    text: 'Ya, Tolak',
+                                    style: 'destructive',
+                                    onPress: () => updateBookingStatus(booking.id, 'cancelled'),
+                                  },
+                                ]
+                              );
+                            }}
+                            className="mr-2 rounded-lg bg-red-500 px-3 py-1">
+                            <Text className="text-xs font-medium text-white">Tolak</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => {
+                              Alert.alert(
+                                'Setujui Booking',
+                                'Apakah Anda yakin ingin menyetujui booking ini?',
+                                [
+                                  { text: 'Batal', style: 'cancel' },
+                                  {
+                                    text: 'Ya, Setujui',
+                                    onPress: () => updateBookingStatus(booking.id, 'confirmed'),
+                                  },
+                                ]
+                              );
+                            }}
+                            className="rounded-lg bg-green-500 px-3 py-1">
+                            <Text className="text-xs font-medium text-white">Setujui</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          )
+        ) : activeTab === 'orders' ? (
           userBookings.length === 0 ? (
             <View className="flex-1 items-center justify-center px-4">
               <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
@@ -124,11 +268,12 @@ export default function MyOrdersScreen() {
                     className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                     <View className="flex-row">
                       <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
-                        {food?.image_urls && food.image_urls.length > 0 ? (
+                        {food?.image_urls && food.image_urls.length > 0 && food.image_urls[0] ? (
                           <Image 
                             source={{ uri: food.image_urls[0] }} 
                             className="h-full w-full" 
                             resizeMode="cover" 
+                            onError={() => console.log('Error loading image:', food.image_urls?.[0])}
                           />
                         ) : (
                           <View className="h-full w-full items-center justify-center">
@@ -225,8 +370,19 @@ export default function MyOrdersScreen() {
                   onPress={() => navigation.navigate('FoodDetail', { foodId: donation.id })}
                   className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                   <View className="flex-row">
-                    <View className="mr-3 h-16 w-16 items-center justify-center rounded-lg bg-gray-200">
-                      <Ionicons name="restaurant" size={24} color="#9CA3AF" />
+                    <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
+                      {donation.image_urls && donation.image_urls.length > 0 && donation.image_urls[0] ? (
+                         <Image 
+                           source={{ uri: donation.image_urls[0] }} 
+                           className="h-full w-full" 
+                           resizeMode="cover" 
+                           onError={() => console.log('Error loading donation image:', donation.image_urls?.[0])}
+                         />
+                      ) : (
+                        <View className="h-full w-full items-center justify-center">
+                          <Ionicons name="restaurant" size={24} color="#9CA3AF" />
+                        </View>
+                      )}
                     </View>
                     <View className="flex-1">
                       <Text className="text-base font-semibold text-gray-900">

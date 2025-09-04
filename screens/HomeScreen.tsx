@@ -23,12 +23,13 @@ import { HomeScreenNavigationProp } from '../types/navigation';
 
 const CATEGORIES = [
   { id: null, name: 'Semua', icon: 'apps' },
-  { id: 'makanan-berat', name: 'Makanan Berat', icon: 'restaurant' },
-  { id: 'snack', name: 'Snack', icon: 'fast-food' },
-  { id: 'minuman', name: 'Minuman', icon: 'wine' },
-  { id: 'buah', name: 'Buah', icon: 'nutrition' },
-  { id: 'sayuran', name: 'Sayuran', icon: 'leaf' },
-  { id: 'roti', name: 'Roti', icon: 'cafe' },
+  { id: 'main-course', name: 'Makanan Utama', icon: 'restaurant' },
+  { id: 'snacks', name: 'Makanan Ringan', icon: 'fast-food' },
+  { id: 'beverages', name: 'Minuman', icon: 'wine' },
+  { id: 'fruits', name: 'Buah-buahan', icon: 'nutrition' },
+  { id: 'vegetables', name: 'Sayuran', icon: 'leaf' },
+  { id: 'bakery', name: 'Roti & Kue', icon: 'cafe' },
+  { id: 'others', name: 'Lainnya', icon: 'ellipsis-horizontal' },
 ];
 
 interface FoodItemProps {
