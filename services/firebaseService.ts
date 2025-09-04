@@ -20,7 +20,7 @@ import { FirebaseUser, FirebaseFood, FirebaseBooking, COLLECTIONS } from '../typ
 import { Food, Booking, BookingWithFood } from '../lib/database';
 
 // Conversion functions between Firebase and local types
-export const convertFirebaseFoodToLocal = (firebaseFood: FirebaseFood): Food => {
+export const convertFirebaseFoodToLocal = (firebaseFood: FirebaseFood, userData?: FirebaseUser): Food => {
   return {
     id: firebaseFood.id,
     title: firebaseFood.name,
@@ -46,6 +46,9 @@ export const convertFirebaseFoodToLocal = (firebaseFood: FirebaseFood): Food => 
     category: firebaseFood.category,
     location: firebaseFood.location,
     status: firebaseFood.isAvailable ? 'available' : 'completed',
+    profiles: userData ? {
+      full_name: userData.name,
+    } : undefined,
   };
 };
 
@@ -187,7 +190,16 @@ export const foodService = {
     const firebaseFoods = querySnapshot.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() }) as FirebaseFood
     );
-    return firebaseFoods.map(convertFirebaseFoodToLocal);
+    
+    // Get user data for each food
+    const foodsWithProfiles = await Promise.all(
+      firebaseFoods.map(async (firebaseFood) => {
+        const userData = await userService.getUserById(firebaseFood.sellerId);
+        return convertFirebaseFoodToLocal(firebaseFood, userData || undefined);
+      })
+    );
+    
+    return foodsWithProfiles;
   },
 
   // Get foods by seller
@@ -201,7 +213,10 @@ export const foodService = {
     const firebaseFoods = querySnapshot.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() }) as FirebaseFood
     );
-    return firebaseFoods.map(convertFirebaseFoodToLocal);
+    
+    // Get user data for each food
+    const userData = await userService.getUserById(sellerId);
+    return firebaseFoods.map(firebaseFood => convertFirebaseFoodToLocal(firebaseFood, userData || undefined));
   },
 
   // Get food by ID
@@ -210,7 +225,9 @@ export const foodService = {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const firebaseFood = { id: docSnap.id, ...docSnap.data() } as FirebaseFood;
-      return convertFirebaseFoodToLocal(firebaseFood);
+      // Get user data for profiles
+      const userData = await userService.getUserById(firebaseFood.sellerId);
+      return convertFirebaseFoodToLocal(firebaseFood, userData || undefined);
     }
     return null;
   },
@@ -246,12 +263,20 @@ export const foodService = {
       orderBy('createdAt', 'desc')
     );
 
-    return onSnapshot(q, (querySnapshot: QuerySnapshot<DocumentData>) => {
+    return onSnapshot(q, async (querySnapshot: QuerySnapshot<DocumentData>) => {
       const firebaseFoods = querySnapshot.docs.map(
         (doc) => ({ id: doc.id, ...doc.data() }) as FirebaseFood
       );
-      const foods = firebaseFoods.map(convertFirebaseFoodToLocal);
-      callback(foods);
+      
+      // Get user data for each food
+      const foodsWithProfiles = await Promise.all(
+        firebaseFoods.map(async (firebaseFood) => {
+          const userData = await userService.getUserById(firebaseFood.sellerId);
+          return convertFirebaseFoodToLocal(firebaseFood, userData || undefined);
+        })
+      );
+      
+      callback(foodsWithProfiles);
     });
   },
 

@@ -25,7 +25,7 @@ export default function MyOrdersScreen() {
     updateBookingStatus,
   } = useFoodStore();
 
-  const [activeTab, setActiveTab] = useState<TabType>('orders');
+  const [activeTab, setActiveTab] = useState<TabType>('donations');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {

@@ -347,7 +347,10 @@ export default function AddFoodScreen() {
         [
           {
             text: 'OK',
-            onPress: () => navigation.goBack(),
+            onPress: () => {
+              // Navigate to MyOrders screen
+              navigation.navigate('MyOrders');
+            },
           },
         ]
       );

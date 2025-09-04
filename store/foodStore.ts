@@ -97,7 +97,10 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
 
     try {
       const foods = await foodService.getAvailableFoods();
-      let filteredFoods = foods;
+      const currentUser = useAuthStore.getState().user;
+      
+      // Filter out user's own donations
+      let filteredFoods = foods.filter(food => food.donor_id !== currentUser?.id);
 
       // Apply search filter if provided
       if (searchQuery && searchQuery.trim()) {
@@ -117,7 +120,7 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
         filteredFoods = filteredFoods.filter((food) => food.category === activeCategory);
       }
 
-      set({ foods, filteredFoods: filteredFoods, isLoading: false });
+      set({ foods: filteredFoods, filteredFoods: filteredFoods, isLoading: false });
     } catch (error) {
       console.error('Error loading foods:', error);
       // Don't fallback to dummy data as it causes booking errors
