@@ -1,319 +1,309 @@
-import { create } from 'zustand'
-import { supabaseHelpers } from '../lib/supabase'
-import { Database } from '../lib/database.types'
-import * as Location from 'expo-location'
+import { create } from 'zustand';
+import { db, initializeDatabase, generateId, getCurrentTimestamp, Food, Booking, BookingWithFood } from '../lib/database';
 
-type Food = Database['public']['Tables']['foods']['Row'] & {
-  profiles?: {
-    full_name: string | null
-    avatar_url: string | null
+// Dummy data
+const DUMMY_FOODS: Food[] = [
+  {
+    id: '1',
+    title: 'Nasi Gudeg Yogya',
+    description: 'Gudeg khas Yogyakarta dengan ayam dan telur, masih hangat dan segar',
+    unit: 'porsi',
+    pickup_address: 'Jl. Malioboro No. 123, Yogyakarta',
+    pickup_time_start: '18:00',
+    pickup_time_end: '20:00',
+    dietary_info: 'Halal, tidak pedas',
+    allergen_info: 'Mengandung telur',
+    preparation_notes: 'Disajikan dengan nasi putih hangat',
+    price_type: 'free',
+    price: null,
+    is_featured: true,
+    view_count: 45,
+    donor_id: 'donor1',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: '2',
+    title: 'Soto Ayam Lamongan',
+    description: 'Soto ayam dengan kuah bening, dilengkapi dengan telur dan kerupuk',
+    unit: 'mangkok',
+    pickup_address: 'Jl. Sudirman No. 456, Jakarta',
+    pickup_time_start: '11:00',
+    pickup_time_end: '13:00',
+    dietary_info: 'Halal, sedikit pedas',
+    allergen_info: 'Mengandung telur dan gluten',
+    preparation_notes: 'Kuah masih panas, siap santap',
+    price_type: 'free',
+    price: null,
+    is_featured: false,
+    view_count: 23,
+    donor_id: 'donor2',
+    created_at: '2024-01-15T08:30:00Z',
+    updated_at: '2024-01-15T08:30:00Z'
+  },
+  {
+    id: '3',
+    title: 'Gado-gado Jakarta',
+    description: 'Gado-gado dengan sayuran segar dan bumbu kacang yang gurih',
+    unit: 'porsi',
+    pickup_address: 'Jl. Thamrin No. 789, Jakarta',
+    pickup_time_start: '12:00',
+    pickup_time_end: '14:00',
+    dietary_info: 'Vegetarian, halal',
+    allergen_info: 'Mengandung kacang',
+    preparation_notes: 'Bumbu kacang terpisah untuk menjaga kesegaran',
+    price_type: 'paid',
+    price: 15000,
+    is_featured: true,
+    view_count: 67,
+    donor_id: 'donor3',
+    created_at: '2024-01-15T09:15:00Z',
+    updated_at: '2024-01-15T09:15:00Z'
   }
-  distance_km?: number
-}
+];
 
-type Booking = Database['public']['Tables']['bookings']['Row'] & {
-  foods?: Food
-  profiles?: {
-    full_name: string | null
-    avatar_url: string | null
+const DUMMY_MY_DONATIONS: Food[] = [
+  {
+    id: '4',
+    title: 'Rendang Padang',
+    description: 'Rendang daging sapi khas Padang yang empuk dan bumbu meresap',
+    unit: 'porsi',
+    pickup_address: 'Jl. Asia Afrika No. 101, Bandung',
+    pickup_time_start: '19:00',
+    pickup_time_end: '21:00',
+    dietary_info: 'Halal, pedas sedang',
+    allergen_info: 'Tidak ada',
+    preparation_notes: 'Masih hangat, siap untuk dibagikan',
+    price_type: 'free',
+    price: null,
+    is_featured: false,
+    view_count: 12,
+    donor_id: 'current_user',
+    created_at: '2024-01-14T16:00:00Z',
+    updated_at: '2024-01-14T16:00:00Z'
+  },
+  {
+    id: '5',
+    title: 'Bakso Malang',
+    description: 'Bakso dengan berbagai isian, kuah hangat dan mie',
+    unit: 'mangkok',
+    pickup_address: 'Jl. Diponegoro No. 202, Malang',
+    pickup_time_start: '17:30',
+    pickup_time_end: '19:30',
+    dietary_info: 'Halal',
+    allergen_info: 'Mengandung gluten',
+    preparation_notes: 'Kuah panas, bakso fresh',
+    price_type: 'free',
+    price: null,
+    is_featured: true,
+    view_count: 34,
+    donor_id: 'current_user',
+    created_at: '2024-01-14T14:30:00Z',
+    updated_at: '2024-01-14T14:30:00Z'
   }
-}
+];
 
-interface FoodState {
-  foods: Food[]
-  myDonations: Food[]
-  myBookings: Booking[]
-  userBookings: Booking[]
-  loading: boolean
-  refreshing: boolean
-  error: string | null
-  userLocation: Location.LocationObject | null
-  
-  // Filters
-  selectedCategory: string | null
-  searchQuery: string
+const DUMMY_USER_BOOKINGS: BookingWithFood[] = [
+  {
+    id: 'booking1',
+    food_id: '1',
+    user_id: 'current_user',
+    status: 'confirmed',
+    pickup_time: '2024-01-15T19:00:00Z',
+    notes: 'Akan datang tepat waktu',
+    created_at: '2024-01-15T12:00:00Z',
+    updated_at: '2024-01-15T12:30:00Z',
+    food: DUMMY_FOODS[0]
+  },
+  {
+    id: 'booking2',
+    food_id: '2',
+    user_id: 'current_user',
+    status: 'pending',
+    pickup_time: null,
+    notes: 'Menunggu konfirmasi dari donor',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T10:00:00Z',
+    food: DUMMY_FOODS[1]
+  },
+  {
+    id: 'booking3',
+    food_id: '3',
+    user_id: 'current_user',
+    status: 'completed',
+    pickup_time: '2024-01-14T13:00:00Z',
+    notes: 'Makanan sudah diambil, terima kasih',
+    created_at: '2024-01-14T11:00:00Z',
+    updated_at: '2024-01-14T13:30:00Z',
+    food: DUMMY_FOODS[2]
+  }
+];
+
+interface FoodStore {
+  foods: Food[];
+  myDonations: Food[];
+  userBookings: BookingWithFood[];
+  isLoading: boolean;
+  error: string | null;
   
   // Actions
-  loadFoods: () => Promise<void>
-  loadMyDonations: (userId: string) => Promise<void>
-  loadMyBookings: (userId: string) => Promise<void>
-  loadUserBookings: () => Promise<void>
-  refreshFoods: () => Promise<void>
-  createFood: (foodData: any) => Promise<{ success: boolean; error?: any }>
-  bookFood: (foodId: string, message?: string) => Promise<{ success: boolean; error?: any }>
-  updateBookingStatus: (bookingId: string, status: string) => Promise<{ success: boolean; error?: any }>
-  setCategory: (category: string | null) => void
-  setSearchQuery: (query: string) => void
-  getUserLocation: () => Promise<void>
-  
-  // Real-time subscriptions
-  subscribeToFoods: () => () => void
-  subscribeToBookings: (userId: string) => () => void
-  subscribeFoods: () => () => void
-  subscribeBookings: () => () => void
+  loadFoods: (category?: string, searchQuery?: string) => Promise<void>;
+  loadMyDonations: () => Promise<void>;
+  loadUserBookings: () => Promise<void>;
+  createFood: (food: Omit<Food, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  bookFood: (foodId: string, userId: string, notes?: string) => Promise<void>;
+  updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
+  initDatabase: () => Promise<void>;
 }
 
-export const useFoodStore = create<FoodState>((set, get) => ({
+export const useFoodStore = create<FoodStore>((set, get) => ({
   foods: [],
   myDonations: [],
-  myBookings: [],
   userBookings: [],
-  loading: false,
-  refreshing: false,
+  isLoading: false,
   error: null,
-  userLocation: null,
-  selectedCategory: null,
-  searchQuery: '',
 
-  loadFoods: async () => {
+  initDatabase: async () => {
     try {
-      set({ loading: true })
-      const { userLocation, selectedCategory } = get()
-      
-      const filters: any = {
-        status: 'available'
-      }
-      
-      if (selectedCategory) {
-        filters.category = selectedCategory
-      }
-      
-      if (userLocation) {
-        filters.latitude = userLocation.coords.latitude
-        filters.longitude = userLocation.coords.longitude
-        filters.radius = 10 // 10km radius
-      }
-      
-      const { data: foods, error } = await supabaseHelpers.getFoods(filters)
-      
-      if (error) {
-        console.error('Error loading foods:', error)
-        return
-      }
-      
-      // Filter by search query if exists
-      let filteredFoods = foods || []
-      const { searchQuery } = get()
-      
-      if (searchQuery) {
-        filteredFoods = filteredFoods.filter((food: Food) => 
-          food.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          food.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          food.location.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      }
-      
-      set({ foods: filteredFoods })
+      await initializeDatabase();
+      console.log('Database initialized successfully');
     } catch (error) {
-      console.error('Load foods error:', error)
-    } finally {
-      set({ loading: false })
+      console.error('Failed to initialize database:', error);
+      set({ error: 'Failed to initialize database' });
     }
   },
 
-  loadMyDonations: async (userId: string) => {
+  loadFoods: async (category?: string, searchQuery?: string) => {
+    set({ isLoading: true, error: null });
+    
     try {
-      const { data: donations, error } = await supabaseHelpers.getFoods()
+      // For now, use dummy data as SQLite implementation
+      let filteredFoods = [...DUMMY_FOODS];
       
-      if (error) {
-        console.error('Error loading donations:', error)
-        return
+      // Apply search filter if provided
+      if (searchQuery && searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filteredFoods = filteredFoods.filter(food => 
+          food.title.toLowerCase().includes(query) ||
+          (food.description && food.description.toLowerCase().includes(query))
+        );
       }
       
-      const myDonations = donations?.filter((food: Food) => food.donor_id === userId) || []
-      set({ myDonations })
+      // Apply category filter if provided
+      if (category && category !== 'all') {
+        // For now, we don't have category field, so we'll skip this filter
+        // In future, add category field to Food interface
+      }
+      
+      set({ foods: filteredFoods, isLoading: false });
     } catch (error) {
-      console.error('Load donations error:', error)
+      console.error('Error loading foods:', error);
+      // Fallback to dummy data on error
+      set({ foods: DUMMY_FOODS, error: 'Failed to load foods', isLoading: false });
     }
   },
 
-  loadMyBookings: async (userId: string) => {
+  loadMyDonations: async () => {
+    set({ isLoading: true, error: null });
+    
     try {
-      const { data: bookings, error } = await supabaseHelpers.getUserBookings(userId, 'receiver')
-      
-      if (error) {
-        console.error('Error loading bookings:', error)
-        return
-      }
-      
-      set({ myBookings: bookings || [] })
+      // For now, use dummy data
+      set({ myDonations: DUMMY_MY_DONATIONS, isLoading: false });
     } catch (error) {
-      console.error('Load bookings error:', error)
-    }
-  },
-
-  refreshFoods: async () => {
-    try {
-      set({ refreshing: true })
-      await get().loadFoods()
-    } finally {
-      set({ refreshing: false })
-    }
-  },
-
-  createFood: async (foodData) => {
-    try {
-      set({ loading: true })
-      const { data, error } = await supabaseHelpers.createFood(foodData)
-      
-      if (error) {
-        console.error('Error creating food:', error)
-        return { success: false, error }
-      }
-      
-      // Refresh foods list
-      await get().loadFoods()
-      
-      return { success: true }
-    } catch (error) {
-      console.error('Create food error:', error)
-      return { success: false, error }
-    } finally {
-      set({ loading: false })
-    }
-  },
-
-  bookFood: async (foodId: string, message?: string) => {
-    try {
-      set({ loading: true })
-      const { data, error } = await supabaseHelpers.bookFood(foodId, message)
-      
-      if (error) {
-        console.error('Error booking food:', error)
-        return { success: false, error }
-      }
-      
-      // Refresh foods and bookings
-      await get().loadFoods()
-      
-      return { success: true }
-    } catch (error) {
-      console.error('Book food error:', error)
-      return { success: false, error }
-    } finally {
-      set({ loading: false })
-    }
-  },
-
-  updateBookingStatus: async (bookingId: string, status: string) => {
-    try {
-      const { data, error } = await supabaseHelpers.updateBookingStatus(bookingId, status)
-      
-      if (error) {
-        console.error('Error updating booking status:', error)
-        return { success: false, error }
-      }
-      
-      // Update local state
-      set(state => ({
-        myBookings: state.myBookings.map(booking => 
-          booking.id === bookingId ? { ...booking, status: status as any } : booking
-        ),
-        userBookings: state.userBookings.map(booking => 
-          booking.id === bookingId ? { ...booking, status: status as any } : booking
-        )
-      }))
-      
-      return { success: true }
-    } catch (error) {
-      console.error('Update booking status error:', error)
-      return { success: false, error }
+      console.error('Error loading my donations:', error);
+      set({ myDonations: [], error: 'Failed to load donations', isLoading: false });
     }
   },
 
   loadUserBookings: async () => {
+    set({ isLoading: true, error: null });
+    
     try {
-      set({ loading: true, error: null })
-      const { data: bookings, error } = await supabaseHelpers.getUserBookings()
+      // For now, use dummy data
+      set({ userBookings: DUMMY_USER_BOOKINGS, isLoading: false });
+    } catch (error) {
+      console.error('Error loading user bookings:', error);
+      set({ userBookings: [], error: 'Failed to load bookings', isLoading: false });
+    }
+  },
+
+  createFood: async (foodData) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const newFood: Food = {
+        ...foodData,
+        id: generateId(),
+        created_at: getCurrentTimestamp(),
+        updated_at: getCurrentTimestamp()
+      };
       
-      if (error) {
-        console.error('Error loading user bookings:', error)
-        set({ error: 'Failed to load bookings' })
-        return
+      // For now, just add to dummy data
+      const currentFoods = get().foods;
+      set({ foods: [...currentFoods, newFood], isLoading: false });
+      
+      // Also add to myDonations if it's from current user
+      const currentDonations = get().myDonations;
+      set({ myDonations: [...currentDonations, newFood] });
+      
+    } catch (error) {
+      console.error('Error creating food:', error);
+      set({ error: 'Failed to create food', isLoading: false });
+    }
+  },
+
+  bookFood: async (foodId: string, userId: string, notes?: string) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const newBooking: Booking = {
+        id: generateId(),
+        food_id: foodId,
+        user_id: userId,
+        status: 'pending',
+        pickup_time: null,
+        notes: notes || null,
+        created_at: getCurrentTimestamp(),
+        updated_at: getCurrentTimestamp()
+      };
+      
+      // Find the food item
+      const food = get().foods.find(f => f.id === foodId);
+      if (!food) {
+        throw new Error('Food not found');
       }
       
-      set({ userBookings: bookings || [] })
+      const bookingWithFood: BookingWithFood = {
+        ...newBooking,
+        food
+      };
+      
+      // Add to user bookings
+      const currentBookings = get().userBookings;
+      set({ userBookings: [...currentBookings, bookingWithFood], isLoading: false });
+      
     } catch (error) {
-      console.error('Load user bookings error:', error)
-      set({ error: 'Failed to load bookings' })
-    } finally {
-      set({ loading: false })
+      console.error('Error booking food:', error);
+      set({ error: 'Failed to book food', isLoading: false });
     }
   },
 
-  setCategory: (category: string | null) => {
-    set({ selectedCategory: category })
-    get().loadFoods()
-  },
-
-  setSearchQuery: (query: string) => {
-    set({ searchQuery: query })
-    get().loadFoods()
-  },
-
-  getUserLocation: async () => {
+  updateBookingStatus: async (bookingId: string, status: Booking['status']) => {
+    set({ isLoading: true, error: null });
+    
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
+      const currentBookings = get().userBookings;
+      const updatedBookings = currentBookings.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, status, updated_at: getCurrentTimestamp() }
+          : booking
+      );
       
-      if (status !== 'granted') {
-        console.log('Location permission denied')
-        return
-      }
+      set({ userBookings: updatedBookings, isLoading: false });
       
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-      
-      set({ userLocation: location })
-      
-      // Reload foods with location
-      await get().loadFoods()
     } catch (error) {
-      console.error('Get location error:', error)
+      console.error('Error updating booking status:', error);
+      set({ error: 'Failed to update booking status', isLoading: false });
     }
-  },
-
-  subscribeToFoods: () => {
-    const subscription = supabaseHelpers.subscribeFoods((payload) => {
-      console.log('Foods real-time update:', payload)
-      get().loadFoods()
-    })
-    
-    return () => {
-      subscription.unsubscribe()
-    }
-  },
-
-  subscribeToBookings: (userId: string) => {
-    const subscription = supabaseHelpers.subscribeBookings(userId, (payload) => {
-      console.log('Bookings real-time update:', payload)
-      get().loadMyBookings(userId)
-    })
-    
-    return () => {
-      subscription.unsubscribe()
-    }
-  },
-
-  subscribeFoods: () => {
-    const subscription = supabaseHelpers.subscribeFoods((payload) => {
-      console.log('Foods real-time update:', payload)
-      get().loadFoods()
-    })
-    
-    return () => {
-      subscription.unsubscribe()
-    }
-  },
-
-  subscribeBookings: () => {
-    const subscription = supabaseHelpers.subscribeBookings('', (payload) => {
-      console.log('Bookings real-time update:', payload)
-      get().loadUserBookings()
-    })
-    
-    return () => {
-      subscription.unsubscribe()
-    }
-  },
-}))
+  }
+}));

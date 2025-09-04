@@ -1,0 +1,95 @@
+// Firebase Configuration Template
+// Rename this file to firebase.ts and add your Firebase config
+// IMPORTANT: Install Firebase first with: npm install firebase
+
+// @ts-ignore - Firebase not installed yet, this is a template
+import { initializeApp } from 'firebase/app';
+// @ts-ignore - Firebase not installed yet, this is a template
+import { getAuth } from 'firebase/auth';
+// @ts-ignore - Firebase not installed yet, this is a template
+import { getFirestore } from 'firebase/firestore';
+// @ts-ignore - Firebase not installed yet, this is a template
+import { getStorage } from 'firebase/storage';
+
+// Your web app's Firebase configuration
+// Replace with your actual Firebase config
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "your-app-id"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase services
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+export default app;
+
+// Helper types for Firestore
+export interface FirebaseUser {
+  id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  address: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface FirebaseFood {
+  id: string;
+  title: string;
+  description: string | null;
+  unit: string;
+  pickup_address: string;
+  pickup_time_start: Date;
+  pickup_time_end: Date;
+  dietary_info: string | null;
+  allergen_info: string | null;
+  preparation_notes: string | null;
+  price_type: 'free' | 'paid';
+  price: number | null;
+  is_featured: boolean;
+  view_count: number;
+  donor_id: string;
+  image_urls: string[];
+  status: 'available' | 'booked' | 'completed' | 'expired' | 'cancelled';
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface FirebaseBooking {
+  id: string;
+  food_id: string;
+  user_id: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  pickup_time: Date | null;
+  notes: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Helper functions for Firestore operations
+export const firestoreHelpers = {
+  // Convert Firestore timestamp to Date
+  timestampToDate: (timestamp: any): Date => {
+    return timestamp?.toDate() || new Date();
+  },
+  
+  // Convert Date to Firestore timestamp
+  dateToTimestamp: (date: Date) => {
+    return date;
+  },
+  
+  // Generate document ID
+  generateId: (): string => {
+    return Math.random().toString(36).substr(2, 9);
+  }
+};

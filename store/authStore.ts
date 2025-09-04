@@ -1,111 +1,132 @@
-import { create } from 'zustand'
-import { User } from '@supabase/supabase-js'
-import { supabase, supabaseHelpers } from '../lib/supabase'
-import { Database } from '../lib/database.types'
-
-type Profile = Database['public']['Tables']['profiles']['Row']
+import { create } from 'zustand';
+import { db, generateId, getCurrentTimestamp, User } from '../lib/database';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthState {
-  user: User | null
-  profile: Profile | null
-  loading: boolean
-  initialized: boolean
+  user: User | null;
+  loading: boolean;
+  initialized: boolean;
   
   // Actions
-  initialize: () => Promise<void>
-  signInWithGoogle: () => Promise<{ error: any }>
-  signInWithEmail: (email: string, password: string) => Promise<{ error: any }>
+  initialize: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (
      email: string, 
      password: string, 
      fullName: string,
-     whatsapp?: string,
-     address?: string,
-     status?: string
-   ) => Promise<{ success: boolean; error?: string; data?: any }>
-  signOut: () => Promise<void>
-  updateProfile: (updates: Partial<Profile>) => Promise<void>
-  setExpoPushToken: (token: string) => Promise<void>
+     phone?: string,
+     address?: string
+   ) => Promise<{ success: boolean; error?: string; data?: any }>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
+
+// Simple password hashing (for demo purposes - use proper hashing in production)
+const hashPassword = (password: string): string => {
+  // This is a very basic hash - in production, use bcrypt or similar
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    const char = password.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString();
+};
+
+// Dummy users for testing
+const DUMMY_USERS: User[] = [
+  {
+    id: 'user1',
+    email: 'test@example.com',
+    full_name: 'Test User',
+    phone: '+6281234567890',
+    address: 'Jl. Test No. 123, Jakarta',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 'user2',
+    email: 'donor@example.com',
+    full_name: 'Donor User',
+    phone: '+6289876543210',
+    address: 'Jl. Donor No. 456, Bandung',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
+  }
+];
+
+// Dummy passwords (hashed)
+const DUMMY_PASSWORDS: { [email: string]: string } = {
+  'test@example.com': hashPassword('password123'),
+  'donor@example.com': hashPassword('donor123')
+};
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  profile: null,
   loading: false,
   initialized: false,
 
   initialize: async () => {
     try {
-      set({ loading: true })
+      set({ loading: true });
       
-      // Get current session
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session?.user) {
-        set({ user: session.user })
-        
-        // Get user profile
-        const { data: profile } = await supabaseHelpers.getProfile(session.user.id)
-        if (profile) {
-          set({ profile })
-        }
+      // Check if user is logged in from AsyncStorage
+      const storedUser = await AsyncStorage.getItem('currentUser');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        set({ user });
       }
       
-      // Listen for auth changes
-      supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          set({ user: session.user })
-          
-          // Get or create profile
-          let { data: profile, error } = await supabaseHelpers.getProfile(session.user.id)
-          
-          if (error && error.code === 'PGRST116') {
-            // Profile doesn't exist, create one
-            const { data: newProfile } = await supabaseHelpers.updateProfile(session.user.id, {
-              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-              avatar_url: session.user.user_metadata?.avatar_url || null,
-            })
-            profile = newProfile
-          }
-          
-          if (profile) {
-            set({ profile })
-          }
-        } else if (event === 'SIGNED_OUT') {
-          set({ user: null, profile: null })
-        }
-      })
-      
     } catch (error) {
-      console.error('Auth initialization error:', error)
+      console.error('Auth initialization error:', error);
     } finally {
-      set({ loading: false, initialized: true })
-    }
-  },
-
-  signInWithGoogle: async () => {
-    try {
-      set({ loading: true })
-      const { data, error } = await supabaseHelpers.signInWithGoogle()
-      return { error }
-    } catch (error) {
-      console.error('Sign in error:', error)
-      return { error }
-    } finally {
-      set({ loading: false })
+      set({ loading: false, initialized: true });
     }
   },
 
   signInWithEmail: async (email: string, password: string) => {
     try {
-      set({ loading: true })
-      const { data, error } = await supabaseHelpers.signInWithEmail(email, password)
-      return { error }
+      set({ loading: true });
+      
+      // Check dummy users first
+      const dummyUser = DUMMY_USERS.find(u => u.email === email);
+      const hashedPassword = hashPassword(password);
+      
+      if (dummyUser && DUMMY_PASSWORDS[email] === hashedPassword) {
+        set({ user: dummyUser });
+        await AsyncStorage.setItem('currentUser', JSON.stringify(dummyUser));
+        return { error: null };
+      }
+      
+      // Check SQLite database
+      return new Promise((resolve) => {
+        db.withTransactionSync(() => {
+          try {
+            const result = db.getFirstSync(
+              'SELECT * FROM users WHERE email = ?',
+              [email]
+            ) as User | null;
+            
+            if (result) {
+              // In a real app, you'd verify the password hash here
+              set({ user: result });
+              AsyncStorage.setItem('currentUser', JSON.stringify(result));
+              resolve({ error: null });
+            } else {
+              resolve({ error: { message: 'Invalid email or password' } });
+            }
+          } catch (error) {
+            console.error('Database error:', error);
+            resolve({ error: { message: 'Database error' } });
+          }
+        });
+      });
+      
     } catch (error) {
-      console.error('Sign in with email error:', error)
-      return { error }
+      console.error('Sign in with email error:', error);
+      return { error };
     } finally {
-      set({ loading: false })
+      set({ loading: false });
     }
   },
 
@@ -113,28 +134,51 @@ export const useAuthStore = create<AuthState>((set, get) => ({
      email: string, 
      password: string, 
      fullName: string,
-     whatsapp?: string,
-     address?: string,
-     status?: string
+     phone?: string,
+     address?: string
    ) => {
     set({ loading: true });
     try {
-      const { data, error } = await supabaseHelpers.signUp(
-         email, 
-         password, 
-         fullName,
-         whatsapp,
-         address,
-         status
-       );
-      if (error) {
-        console.error('Sign up error:', error);
-        return { success: false, error: error.message };
+      // Check if user already exists
+      const existingUser = DUMMY_USERS.find(u => u.email === email);
+      if (existingUser) {
+        return { success: false, error: 'Email already registered' };
       }
-      return { success: true, data };
+      
+      // Create new user
+      const newUser: User = {
+        id: generateId(),
+        email,
+        full_name: fullName,
+        phone: phone || null,
+        address: address || null,
+        created_at: getCurrentTimestamp(),
+        updated_at: getCurrentTimestamp()
+      };
+      
+      // Insert into SQLite database
+      return new Promise((resolve) => {
+        db.withTransactionSync(() => {
+          try {
+            db.runSync(
+              `INSERT INTO users (id, email, full_name, phone, address, created_at, updated_at) 
+               VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              [newUser.id, newUser.email, newUser.full_name, newUser.phone, newUser.address, newUser.created_at, newUser.updated_at]
+            );
+            
+            set({ user: newUser });
+            AsyncStorage.setItem('currentUser', JSON.stringify(newUser));
+            resolve({ success: true, data: newUser });
+          } catch (error) {
+            console.error('Database error:', error);
+            resolve({ success: false, error: 'Failed to create user' });
+          }
+        });
+      });
+      
     } catch (error) {
       console.error('Sign up error:', error);
-      return { success: false, error: 'Terjadi kesalahan saat mendaftar' };
+      return { success: false, error: 'Registration failed' };
     } finally {
       set({ loading: false });
     }
@@ -142,42 +186,47 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     try {
-      set({ loading: true })
-      await supabaseHelpers.signOut()
-      set({ user: null, profile: null })
+      set({ loading: true });
+      await AsyncStorage.removeItem('currentUser');
+      set({ user: null });
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Sign out error:', error);
     } finally {
-      set({ loading: false })
+      set({ loading: false });
     }
   },
 
   updateProfile: async (updates) => {
     try {
-      const { user, profile } = get()
-      if (!user || !profile) return
+      const { user } = get();
+      if (!user) return;
       
-      set({ loading: true })
-      const { data: updatedProfile } = await supabaseHelpers.updateProfile(user.id, updates)
+      set({ loading: true });
       
-      if (updatedProfile) {
-        set({ profile: updatedProfile })
-      }
+      const updatedUser = { ...user, ...updates, updated_at: getCurrentTimestamp() };
+      
+      // Update in SQLite database
+      db.withTransactionSync(() => {
+        try {
+          const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+          const values = [...Object.values(updates), getCurrentTimestamp(), user.id];
+          
+          db.runSync(
+            `UPDATE users SET ${setClause}, updated_at = ? WHERE id = ?`,
+            values
+          );
+          
+          set({ user: updatedUser });
+          AsyncStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        } catch (error) {
+          console.error('Database update error:', error);
+        }
+      });
+      
     } catch (error) {
-      console.error('Update profile error:', error)
+      console.error('Update profile error:', error);
     } finally {
-      set({ loading: false })
+      set({ loading: false });
     }
-  },
-
-  setExpoPushToken: async (token) => {
-    try {
-      const { user } = get()
-      if (!user) return
-      
-      await get().updateProfile({ expo_push_token: token })
-    } catch (error) {
-      console.error('Set push token error:', error)
-    }
-  },
-}))
+  }
+}));

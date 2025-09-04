@@ -8,7 +8,6 @@ import { View, Text, Alert } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import * as Linking from 'expo-linking'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { supabaseHelpers } from './lib/supabase'
 import './global.css'
 
 // Screens
@@ -105,7 +104,6 @@ function MainTabs() {
 // Main App Component
 export default function App() {
   const { user, loading, initialize } = useAuthStore()
-  const { subscribeFoods, subscribeBookings } = useFoodStore()
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -115,34 +113,7 @@ export default function App() {
     // Check onboarding status
     checkOnboardingStatus()
 
-    // Setup deep link listener for email confirmation
-    const handleDeepLink = async (url: string) => {
-      if (url.includes('auth/callback')) {
-        try {
-          const { data, error } = await supabaseHelpers.handleEmailConfirmation(url)
-          if (error) {
-            Alert.alert('Error', 'Gagal mengkonfirmasi email. Silakan coba lagi.')
-          } else if (data?.user) {
-            Alert.alert('Berhasil', 'Email berhasil dikonfirmasi! Anda sekarang dapat masuk ke aplikasi.')
-          }
-        } catch (error) {
-          console.error('Email confirmation error:', error)
-          Alert.alert('Error', 'Terjadi kesalahan saat mengkonfirmasi email.')
-        }
-      }
-    }
-
-    // Listen for deep links
-    const linkingListener = Linking.addEventListener('url', ({ url }) => {
-      handleDeepLink(url)
-    })
-
-    // Handle initial URL if app was opened from a link
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        handleDeepLink(url)
-      }
-    })
+    // Deep link handling removed since we're using SQLite instead of Supabase auth
 
     // Setup notification listeners
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
@@ -155,7 +126,6 @@ export default function App() {
     })
 
     return () => {
-      linkingListener.remove()
       Notifications.removeNotificationSubscription(notificationListener)
       Notifications.removeNotificationSubscription(responseListener)
     }
@@ -173,16 +143,9 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
-      // Setup real-time subscriptions when user is authenticated
-      const unsubscribeFoods = subscribeFoods()
-      const unsubscribeBookings = subscribeBookings()
-
-      return () => {
-        unsubscribeFoods()
-        unsubscribeBookings()
-      }
+      // Real-time subscriptions not needed with SQLite
+      // Data will be fetched when screens are loaded
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // Loading screen
