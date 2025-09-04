@@ -11,6 +11,28 @@ export type RootStackParamList = {
   FoodDetail: { foodId: string }
   EditProfile: undefined
   Help: undefined
+  BookingQR: {
+    bookingData: {
+      id: string;
+      food_id: string;
+      user_id: string;
+      status: string;
+      pickup_time: string | null;
+      notes?: string;
+      created_at: string;
+      food: {
+        id: string;
+        title: string;
+        pickup_address: string;
+        pickup_time_start: string;
+        pickup_time_end: string;
+        profiles: {
+          full_name: string;
+        };
+      };
+    };
+  }
+  QRScanner: undefined
 }
 
 // Tab Navigator Types

@@ -3,37 +3,34 @@
     "name": "sisaplus",
     "slug": "sisaplus",
     "version": "1.0.0",
-
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "experiments": {
       "tsconfigPaths": true
     },
-
     "plugins": [
       "expo-image-picker"
     ],
-
     "orientation": "portrait",
     "icon": "./assets/logo.svg",
-
     "userInterfaceStyle": "light",
-
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ef4444"
     },
     "scheme": "sisaplus",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to your camera to take photos of food items.",
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images of food items."
-      }
+      },
+      "bundleIdentifier": "com.yosadadev.sisaplus"
     },
     "android": {
       "adaptiveIcon": {
@@ -41,10 +38,12 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ]
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.yosadadev.sisaplus"
     }
   }
 }

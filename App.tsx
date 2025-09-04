@@ -15,6 +15,8 @@ import OnboardingScreen from './screens/OnboardingScreen'
 import LoginScreen from './screens/LoginScreen'
 import EditProfileScreen from './screens/EditProfileScreen'
 import HelpScreen from './screens/HelpScreen'
+import BookingQRScreen from './screens/BookingQRScreen'
+import QRScannerScreen from './screens/QRScannerScreen'
 import RegisterScreen from './screens/RegisterScreen'
 import HomeScreen from './screens/HomeScreen'
 import FoodDetailScreen from './screens/FoodDetailScreen'
@@ -204,6 +206,22 @@ export default function App() {
             <Stack.Screen 
               name="Help" 
               component={HelpScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen 
+              name="BookingQR" 
+              component={BookingQRScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen 
+              name="QRScanner" 
+              component={QRScannerScreen}
               options={{
                 headerShown: false,
                 presentation: 'modal',

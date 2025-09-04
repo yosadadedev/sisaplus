@@ -61,6 +61,14 @@ export default function ProfileScreen() {
       },
     },
     {
+      icon: 'qr-code-outline',
+      title: 'Scan QR Code',
+      subtitle: 'Verifikasi booking receiver',
+      onPress: () => {
+        (navigation as any).navigate('QRScanner')
+      },
+    },
+    {
       icon: 'help-circle-outline',
       title: 'Bantuan',
       subtitle: 'FAQ dan dukungan pelanggan',

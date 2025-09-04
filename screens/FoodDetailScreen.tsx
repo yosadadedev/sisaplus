@@ -50,19 +50,32 @@ export default function FoodDetailScreen() {
       setBookingLoading(true)
       await bookFood(food.id, user.id, bookingMessage)
       
-      Alert.alert(
-        'Berhasil!',
-        'Makanan berhasil dipesan. Donor akan segera menghubungi Anda.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setShowBookingModal(false)
-              navigation.goBack()
-            }
+      // Create booking data for QR code
+      const bookingData = {
+        id: `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        food_id: food.id,
+        user_id: user.id,
+        status: 'confirmed',
+        pickup_time: food.pickup_time_start,
+        notes: bookingMessage,
+        created_at: new Date().toISOString(),
+        food: {
+          id: food.id,
+          title: food.title,
+          pickup_address: food.pickup_address,
+          pickup_time_start: food.pickup_time_start,
+          pickup_time_end: food.pickup_time_end,
+          profiles: {
+            full_name: food.profiles?.full_name || 'Donatur'
           }
-        ]
-      )
+        }
+      }
+      
+      setShowBookingModal(false)
+      
+      // Navigate to QR code screen
+       ;(navigation as any).navigate('BookingQR', { bookingData })
+      
     } catch (error) {
       console.error('Booking error:', error)
       Alert.alert(
