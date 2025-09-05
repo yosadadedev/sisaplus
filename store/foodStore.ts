@@ -311,10 +311,10 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
               food_id: firebaseBooking.foodId,
               user_id: firebaseBooking.buyerId,
               status: firebaseBooking.status,
-              pickup_time: firebaseBooking.pickupTime?.toDate().toISOString() || null,
+              pickup_time: firebaseBooking.pickupTime?.toDate ? firebaseBooking.pickupTime.toDate().toISOString() : null,
               notes: firebaseBooking.notes || null,
-              created_at: firebaseBooking.createdAt.toDate().toISOString(),
-              updated_at: firebaseBooking.updatedAt.toDate().toISOString(),
+              created_at: firebaseBooking.createdAt?.toDate ? firebaseBooking.createdAt.toDate().toISOString() : new Date().toISOString(),
+              updated_at: firebaseBooking.updatedAt?.toDate ? firebaseBooking.updatedAt.toDate().toISOString() : new Date().toISOString(),
             } as Booking;
 
             const food = await foodService.getFoodById(booking.food_id);
