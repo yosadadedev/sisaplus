@@ -292,7 +292,7 @@ export default function HomeScreen() {
       <View className="flex-1 px-4">
         {isLoading && foods.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#0ea5e9" />
+            <ActivityIndicator size="large" color="#ef4444" />
             <Text className="mt-4 text-gray-600">Memuat makanan...</Text>
           </View>
         ) : (
@@ -309,8 +309,8 @@ export default function HomeScreen() {
                     setRefreshing(false)
                   );
                 }}
-                colors={['#0ea5e9']}
-                tintColor="#0ea5e9"
+                colors={['#ef4444']}
+                tintColor="#ef4444"
               />
             }
             showsVerticalScrollIndicator={false}

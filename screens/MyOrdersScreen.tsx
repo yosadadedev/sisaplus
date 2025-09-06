@@ -71,7 +71,7 @@ export default function MyOrdersScreen() {
           <TouchableOpacity
             onPress={() => setActiveTab('orders')}
             className={`mr-1 flex-1 rounded-lg px-3 py-3 ${
-              activeTab === 'orders' ? 'bg-blue-500' : 'bg-gray-100'
+              activeTab === 'orders' ? 'bg-primary-500' : 'bg-gray-100'
             }`}>
             <Text
               className={`text-center font-medium text-xs ${
@@ -84,7 +84,7 @@ export default function MyOrdersScreen() {
           <TouchableOpacity
             onPress={() => setActiveTab('donations')}
             className={`ml-1 flex-1 rounded-lg px-3 py-3 ${
-              activeTab === 'donations' ? 'bg-blue-500' : 'bg-gray-100'
+              activeTab === 'donations' ? 'bg-primary-500' : 'bg-gray-100'
             }`}>
             <Text
               className={`text-center font-medium text-xs ${
