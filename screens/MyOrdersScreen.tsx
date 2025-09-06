@@ -267,12 +267,12 @@ export default function MyOrdersScreen() {
                           </Text>
                           <View className="mt-1 flex-row items-center">
                             <View className={`mr-2 h-2 w-2 rounded-full ${
-                              !isExpired ? 'bg-green-500' : 'bg-red-500'
+                              !isExpired || booking.status === 'completed' ? 'bg-green-500' : 'bg-red-500'
                             }`} />
                             <Text className={`text-xs font-medium ${
-                              !isExpired ? 'text-green-600' : 'text-red-600'
+                              !isExpired || booking.status === 'completed' ? 'text-green-600' : 'text-red-600'
                             }`}>
-                              {!isExpired && booking.status === 'completed' ? 'Aktif' : 'Kadaluwarsa'}
+                              {!isExpired ? 'Aktif' :  booking.status === 'completed' ? 'Sudah diambil oleh pembeli' : 'Kadaluwarsa'}
                             </Text>
                           </View>
                           <Text className="mt-1 text-xs text-gray-500">
