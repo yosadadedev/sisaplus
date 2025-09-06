@@ -415,6 +415,75 @@ export default function FoodDetailScreen() {
             </View>
           </View>
 
+          {/* Order Flow Information */}
+          <View className="mb-8 rounded-2xl border border-blue-100 bg-blue-50 p-6">
+            <View className="mb-4 flex-row items-center">
+              <View className="h-8 w-8 items-center justify-center rounded-full bg-blue-500">
+                <Ionicons name="information-circle" size={16} color="white" />
+              </View>
+              <Text className="ml-2 text-lg font-bold text-blue-900">Cara Memesan Makanan</Text>
+            </View>
+            
+            <View className="space-y-4">
+              {/* Step 1 */}
+              <View className="flex-row items-start">
+                <View className="mr-3 h-6 w-6 items-center justify-center rounded-full bg-blue-500">
+                  <Text className="text-xs font-bold text-white">1</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-blue-900">Pesan Makanan</Text>
+                  <Text className="text-sm text-blue-700">Klik tombol Pesan Makanan Ini dan tambahkan catatan jika diperlukan</Text>
+                </View>
+              </View>
+              
+              {/* Step 2 */}
+              <View className="flex-row items-start">
+                <View className="mr-3 h-6 w-6 items-center justify-center rounded-full bg-blue-500">
+                  <Text className="text-xs font-bold text-white">2</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-blue-900">Menunggu Konfirmasi</Text>
+                  <Text className="text-sm text-blue-700">Donatur akan mengkonfirmasi pesanan Anda dalam waktu 24 jam</Text>
+                </View>
+              </View>
+              
+              {/* Step 3 */}
+              <View className="flex-row items-start">
+                <View className="mr-3 h-6 w-6 items-center justify-center rounded-full bg-blue-500">
+                  <Text className="text-xs font-bold text-white">3</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-blue-900">Ambil Makanan</Text>
+                  <Text className="text-sm text-blue-700">Datang ke lokasi yang tertera untuk mengambil makanan</Text>
+                </View>
+              </View>
+              
+              {/* Step 4 */}
+              <View className="flex-row items-start">
+                <View className="mr-3 h-6 w-6 items-center justify-center rounded-full bg-blue-500">
+                  <Text className="text-xs font-bold text-white">4</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-blue-900">Konfirmasi Selesai</Text>
+                  <Text className="text-sm text-blue-700">Setelah menerima makanan, konfirmasi pesanan selesai dan berikan rating</Text>
+                </View>
+              </View>
+            </View>
+            
+            {/* Tips */}
+            <View className="mt-4 rounded-xl bg-blue-100 p-4">
+              <View className="mb-2 flex-row items-center">
+                <Ionicons name="bulb" size={16} color="#1d4ed8" />
+                <Text className="ml-2 text-sm font-bold text-blue-800">Tips:</Text>
+              </View>
+              <Text className="text-xs text-blue-700">
+                • Pastikan Anda bisa datang sesuai waktu yang disepakati\n
+                • Bawa wadah sendiri jika diperlukan\n
+                • Hubungi donatur jika ada kendala
+              </Text>
+            </View>
+          </View>
+
           {/* Donor Info */}
           <View className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <Text className="mb-4 text-lg font-bold text-gray-900">Informasi Donor</Text>
