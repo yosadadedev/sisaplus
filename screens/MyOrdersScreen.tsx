@@ -90,7 +90,7 @@ export default function MyOrdersScreen() {
               className={`text-center font-medium text-xs ${
                 activeTab === 'donations' ? 'text-white' : 'text-gray-700'
               }`}>
-              Donasi & Booking Masuk
+              Donasi Saya
             </Text>
           </TouchableOpacity>
         </View>
@@ -176,7 +176,7 @@ export default function MyOrdersScreen() {
                                     : 'text-red-800'
                             }`}>
                             {booking.status === 'confirmed'
-                              ? 'Dikonfirmasi'
+                              ? 'Dikonfirmasi Donatur'
                               : booking.status === 'pending'
                                 ? 'Menunggu'
                                 : booking.status === 'completed'
@@ -228,27 +228,30 @@ export default function MyOrdersScreen() {
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
             
-            {/* Donasi Saya Section */}
-            {myDonations.length > 0 && (
+            {/* Pesanan & Booking Section */}
+            {(myDonations.length > 0 || incomingBookings.length > 0) && (
               <View className="mb-4">
-                <Text className="mb-3 text-lg font-bold text-gray-900">Donasi Saya</Text>
-                {myDonations.map((donation) => {
-                  const bookingsCount = userBookings.filter((b) => b.food_id === donation.id).length;
-                  const pendingBookings = incomingBookings.filter((b) => b.food_id === donation.id && b.status === 'pending');
+                <Text className="mb-3 text-lg font-bold text-gray-900">Pesanan & Booking</Text>
+                
+
+                
+                {/* Booking Masuk Items */}
+                {incomingBookings.map((booking) => {
+                  const isExpired = booking.food?.expired_at && new Date(booking.food.expired_at) <= new Date();
                   return (
                     <TouchableOpacity
-                      key={donation.id}
-                      onPress={() => navigation.navigate('FoodDetail', { foodId: donation.id })}
+                      key={`booking-${booking.id}`}
+                      onPress={() => navigation.navigate('FoodDetail', { foodId: booking.food_id })}
                       className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                       <View className="flex-row">
                         <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
-                          {donation.image_urls && donation.image_urls.length > 0 && donation.image_urls[0] ? (
-                             <Image 
-                               source={{ uri: donation.image_urls[0] }} 
-                               className="h-full w-full" 
-                               resizeMode="cover" 
-                               onError={() => console.log('Error loading donation image:', donation.image_urls?.[0])}
-                             />
+                          {booking.food?.image_urls && booking.food.image_urls.length > 0 && booking.food.image_urls[0] ? (
+                            <Image 
+                              source={{ uri: booking.food.image_urls[0] }} 
+                              className="h-full w-full" 
+                              resizeMode="cover" 
+                              onError={() => console.log('Error loading image:', booking.food?.image_urls?.[0])}
+                            />
                           ) : (
                             <View className="h-full w-full items-center justify-center">
                               <Ionicons name="restaurant" size={24} color="#9CA3AF" />
@@ -257,216 +260,114 @@ export default function MyOrdersScreen() {
                         </View>
                         <View className="flex-1">
                           <Text className="text-base font-semibold text-gray-900">
-                            {donation.title}
+                            {booking.food?.title || 'Makanan tidak ditemukan'}
                           </Text>
                           <Text className="mt-1 text-sm text-gray-600">
-                            Berlaku sampai: {new Date(donation.expired_at).toLocaleDateString('id-ID')}
+                            Pembeli: Pembeli #{booking.user_id.slice(-6)}
+                          </Text>
+                          <View className="mt-1 flex-row items-center">
+                            <View className={`mr-2 h-2 w-2 rounded-full ${
+                              !isExpired ? 'bg-green-500' : 'bg-red-500'
+                            }`} />
+                            <Text className={`text-xs font-medium ${
+                              !isExpired ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {!isExpired && booking.status === 'completed' ? 'Aktif' : 'Kadaluwarsa'}
+                            </Text>
+                          </View>
+                          <Text className="mt-1 text-xs text-gray-500">
+                            Berlaku sampai: {booking.food?.expired_at ? new Date(booking.food.expired_at).toLocaleDateString('id-ID') : 'Tidak tersedia'}
                           </Text>
                           <Text className="mt-1 text-xs text-gray-500">
-                            {donation.created_at
-                              ? formatDistanceToNow(new Date(donation.created_at), {
+                            {booking.created_at
+                              ? formatDistanceToNow(new Date(booking.created_at), {
                                   addSuffix: true,
                                   locale: id,
                                 })
                               : 'Waktu tidak tersedia'}
                           </Text>
+                          {booking.notes && (
+                            <Text className="mt-1 text-sm text-gray-500">
+                              Catatan: {booking.notes}
+                            </Text>
+                          )}
                         </View>
                         <View className="items-end justify-between">
-                          <View className="rounded-full bg-green-100 px-2 py-1">
-                            <Text className="text-xs font-medium text-green-800">Aktif</Text>
+                          <View
+                            className={`rounded-full px-2 py-1 ${
+                              booking.status === 'confirmed'
+                                ? 'bg-green-100'
+                                : booking.status === 'pending'
+                                  ? 'bg-yellow-100'
+                                  : booking.status === 'completed'
+                                  ? 'bg-green-100'
+                                  : 'bg-red-100'
+                            }`}>
+                            <Text
+                              className={`text-xs font-medium ${
+                                booking.status === 'confirmed'
+                                  ? 'text-green-800'
+                                  : booking.status === 'pending'
+                                    ? 'text-yellow-800'
+                                    : booking.status === 'completed'
+                                    ? 'text-green-800'
+                                    : 'text-red-800'
+                              }`}>
+                              {booking.status === 'confirmed'
+                                ? 'Dikonfirmasi'
+                                : booking.status === 'pending'
+                                  ? 'Menunggu'
+                                  : booking.status === 'cancelled'
+                                    ? 'Dibatalkan'
+                                    : 'Selesai'}
+                            </Text>
                           </View>
-                          {pendingBookings.length > 0 ? (
+                          {booking.status === 'pending' && (
                             <View className="mt-2 flex-row">
                               <TouchableOpacity
                                 onPress={(e) => {
                                   e.stopPropagation();
                                   Alert.alert(
-                                    'Tolak Semua Booking',
-                                    `Apakah Anda yakin ingin menolak ${pendingBookings.length} booking untuk donasi ini?`,
+                                    'Tolak Booking',
+                                    'Apakah Anda yakin ingin menolak booking ini?',
                                     [
                                       { text: 'Batal', style: 'cancel' },
                                       {
                                         text: 'Ya, Tolak',
                                         style: 'destructive',
-                                        onPress: () => {
-                                          pendingBookings.forEach((booking) => {
-                                            updateBookingStatus(booking.id, 'cancelled');
-                                          });
-                                        },
+                                        onPress: () => updateBookingStatus(booking.id, 'cancelled'),
                                       },
                                     ]
                                   );
                                 }}
                                 className="mr-2 rounded-lg bg-red-500 px-3 py-1">
-                                <Text className="text-xs font-medium text-white">Cancel</Text>
+                                <Text className="text-xs font-medium text-white">Tolak</Text>
                               </TouchableOpacity>
                               <TouchableOpacity
                                 onPress={(e) => {
                                   e.stopPropagation();
                                   Alert.alert(
-                                    'Konfirmasi Semua Booking',
-                                    `Apakah Anda yakin ingin mengkonfirmasi ${pendingBookings.length} booking untuk donasi ini?`,
+                                    'Setujui Booking',
+                                    'Apakah Anda yakin ingin menyetujui booking ini?',
                                     [
                                       { text: 'Batal', style: 'cancel' },
                                       {
-                                        text: 'Ya, Konfirmasi',
-                                        onPress: () => {
-                                          pendingBookings.forEach((booking) => {
-                                            updateBookingStatus(booking.id, 'confirmed');
-                                          });
-                                        },
+                                        text: 'Ya, Setujui',
+                                        onPress: () => updateBookingStatus(booking.id, 'confirmed'),
                                       },
                                     ]
                                   );
                                 }}
                                 className="rounded-lg bg-green-500 px-3 py-1">
-                                <Text className="text-xs font-medium text-white">Konfirmasi</Text>
+                                <Text className="text-xs font-medium text-white">Setujui</Text>
                               </TouchableOpacity>
                             </View>
-                          ) : (
-                            <Text className="mt-1 text-xs font-medium text-blue-600">
-                              {bookingsCount} pesanan
-                            </Text>
                           )}
                         </View>
                       </View>
                     </TouchableOpacity>
                   );
                 })}
-              </View>
-            )}
-            
-            {/* Booking Masuk Section */}
-            {incomingBookings.length > 0 && (
-              <View className="mb-4">
-                <Text className="mb-3 text-lg font-bold text-gray-900">Booking Masuk</Text>
-                {incomingBookings.map((booking) => (
-                  <TouchableOpacity
-                    key={booking.id}
-                      onPress={() => navigation.navigate('FoodDetail', { foodId: booking.id })}
-                    className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <View className="flex-row">
-                      <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
-                        {booking.food?.image_urls && booking.food.image_urls.length > 0 && booking.food.image_urls[0] ? (
-                          <Image 
-                            source={{ uri: booking.food.image_urls[0] }} 
-                            className="h-full w-full" 
-                            resizeMode="cover" 
-                            onError={() => console.log('Error loading image:', booking.food?.image_urls?.[0])}
-                          />
-                        ) : (
-                          <View className="h-full w-full items-center justify-center">
-                            <Ionicons name="restaurant" size={24} color="#9CA3AF" />
-                          </View>
-                        )}
-                      </View>
-                      <View className="flex-1">
-                         <Text className="text-base font-semibold text-gray-900">
-                           {booking.food?.title || 'Makanan tidak ditemukan'}
-                         </Text>
-                         <Text className="mt-1 text-sm text-gray-600">
-                           Pembeli: {booking.food?.profiles?.full_name || 'Tidak diketahui'}
-                         </Text>
-                         {booking.notes && (
-                           <Text className="mt-1 text-sm text-gray-500">
-                             Catatan: {booking.notes}
-                           </Text>
-                         )}
-                         <Text className="mt-1 text-xs text-gray-500">
-                           Berlaku sampai: {booking.food?.expired_at ? new Date(booking.food.expired_at).toLocaleDateString('id-ID') : 'Tidak tersedia'}
-                         </Text>
-                         <View className="mt-1 flex-row items-center">
-                           <View className={`mr-2 h-2 w-2 rounded-full ${
-                             booking.food?.expired_at && new Date(booking.food.expired_at) > new Date() 
-                               ? 'bg-green-500' 
-                               : 'bg-red-500'
-                           }`} />
-                           <Text className={`text-xs font-medium ${
-                             booking.food?.expired_at && new Date(booking.food.expired_at) > new Date()
-                               ? 'text-green-600'
-                               : 'text-red-600'
-                           }`}>
-                             {booking.food?.expired_at && new Date(booking.food.expired_at) > new Date() ? 'Aktif' : 'Kadaluwarsa'}
-                           </Text>
-                         </View>
-                         <Text className="mt-1 text-xs text-gray-500">
-                           {booking.created_at
-                             ? formatDistanceToNow(new Date(booking.created_at), {
-                                 addSuffix: true,
-                                 locale: id,
-                               })
-                             : 'Waktu tidak tersedia'}
-                         </Text>
-                       </View>
-                      <View className="items-end justify-between">
-                        <View
-                          className={`rounded-full px-2 py-1 ${
-                            booking.status === 'confirmed'
-                              ? 'bg-green-100'
-                              : booking.status === 'pending'
-                                ? 'bg-yellow-100'
-                                : 'bg-red-100'
-                          }`}>
-                          <Text
-                            className={`text-xs font-medium ${
-                              booking.status === 'confirmed'
-                                ? 'text-green-800'
-                                : booking.status === 'pending'
-                                  ? 'text-yellow-800'
-                                  : 'text-red-800'
-                            }`}>
-                            {booking.status === 'confirmed'
-                              ? 'Dikonfirmasi'
-                              : booking.status === 'pending'
-                                ? 'Menunggu'
-                                : booking.status === 'cancelled'
-                                  ? 'Dibatalkan'
-                                  : 'Selesai'}
-                          </Text>
-                        </View>
-                        {booking.status === 'pending' && (
-                          <View className="mt-2 flex-row">
-                            <TouchableOpacity
-                              onPress={() => {
-                                Alert.alert(
-                                  'Tolak Booking',
-                                  'Apakah Anda yakin ingin menolak booking ini?',
-                                  [
-                                    { text: 'Batal', style: 'cancel' },
-                                    {
-                                      text: 'Ya, Tolak',
-                                      style: 'destructive',
-                                      onPress: () => updateBookingStatus(booking.id, 'cancelled'),
-                                    },
-                                  ]
-                                );
-                              }}
-                              className="mr-2 rounded-lg bg-red-500 px-3 py-1">
-                              <Text className="text-xs font-medium text-white">Tolak</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={() => {
-                                Alert.alert(
-                                  'Setujui Booking',
-                                  'Apakah Anda yakin ingin menyetujui booking ini?',
-                                  [
-                                    { text: 'Batal', style: 'cancel' },
-                                    {
-                                      text: 'Ya, Setujui',
-                                      onPress: () => updateBookingStatus(booking.id, 'confirmed'),
-                                    },
-                                  ]
-                                );
-                              }}
-                              className="rounded-lg bg-green-500 px-3 py-1">
-                              <Text className="text-xs font-medium text-white">Setujui</Text>
-                            </TouchableOpacity>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
               </View>
             )}
           </ScrollView>
