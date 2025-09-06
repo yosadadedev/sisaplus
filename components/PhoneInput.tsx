@@ -1,20 +1,12 @@
-import React, { useState } from 'react'
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  StyleSheet,
-} from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Country {
-  code: string
-  name: string
-  dialCode: string
-  flag: string
+  code: string;
+  name: string;
+  dialCode: string;
+  flag: string;
 }
 
 const COUNTRIES: Country[] = [
@@ -48,14 +40,14 @@ const COUNTRIES: Country[] = [
   { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
   { code: 'KE', name: 'Kenya', dialCode: '+254', flag: '🇰🇪' },
   { code: 'RU', name: 'Russia', dialCode: '+7', flag: '🇷🇺' },
-]
+];
 
 interface PhoneInputProps {
-  value: string
-  onChangeText: (text: string) => void
-  placeholder?: string
-  label?: string
-  required?: boolean
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  label?: string;
+  required?: boolean;
 }
 
 export default function PhoneInput({
@@ -65,46 +57,41 @@ export default function PhoneInput({
   label = 'WhatsApp',
   required = false,
 }: PhoneInputProps) {
-  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]) // Default Indonesia
-  const [showCountryPicker, setShowCountryPicker] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]); // Default Indonesia
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredCountries = COUNTRIES.filter(
     (country) =>
       country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       country.dialCode.includes(searchQuery)
-  )
+  );
 
   const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country)
-    setShowCountryPicker(false)
+    setSelectedCountry(country);
+    setShowCountryPicker(false);
     // Update the phone number with new country code
-    const phoneWithoutCode = value.replace(/^\+\d+/, '')
-    onChangeText(country.dialCode + phoneWithoutCode)
-  }
+    const phoneWithoutCode = value.replace(/^\+\d+/, '');
+    onChangeText(country.dialCode + phoneWithoutCode);
+  };
 
   const handlePhoneChange = (text: string) => {
     // Remove any non-numeric characters except +
-    const cleanText = text.replace(/[^\d+]/g, '')
-    
+    const cleanText = text.replace(/[^\d+]/g, '');
+
     // If user types a new country code, try to detect it
     if (cleanText.startsWith('+') && cleanText !== selectedCountry.dialCode) {
-      const matchingCountry = COUNTRIES.find(country => 
-        cleanText.startsWith(country.dialCode)
-      )
+      const matchingCountry = COUNTRIES.find((country) => cleanText.startsWith(country.dialCode));
       if (matchingCountry) {
-        setSelectedCountry(matchingCountry)
+        setSelectedCountry(matchingCountry);
       }
     }
-    
-    onChangeText(cleanText)
-  }
+
+    onChangeText(cleanText);
+  };
 
   const renderCountryItem = ({ item }: { item: Country }) => (
-    <TouchableOpacity
-      style={styles.countryItem}
-      onPress={() => handleCountrySelect(item)}
-    >
+    <TouchableOpacity style={styles.countryItem} onPress={() => handleCountrySelect(item)}>
       <Text style={styles.flag}>{item.flag}</Text>
       <View style={styles.countryInfo}>
         <Text style={styles.countryName}>{item.name}</Text>
@@ -114,33 +101,32 @@ export default function PhoneInput({
         <Ionicons name="checkmark" size={20} color="#ef4444" />
       )}
     </TouchableOpacity>
-  )
+  );
 
   return (
     <View className="mb-4">
-      <Text className="text-sm font-medium text-gray-700 mb-2">
+      <Text className="mb-2 text-sm font-medium text-gray-700">
         {label} {required && '*'}
       </Text>
-      
+
       <View className="relative flex-row">
         {/* Country Code Picker */}
         <TouchableOpacity
           onPress={() => setShowCountryPicker(true)}
-          className="bg-gray-50 border border-gray-200 rounded-l-xl px-3 py-3 flex-row items-center border-r-0"
-        >
-          <Text className="text-lg mr-1">{selectedCountry.flag}</Text>
-          <Text className="text-base text-gray-800 mr-1">{selectedCountry.dialCode}</Text>
+          className="flex-row items-center rounded-l-xl border border-r-0 border-gray-200 bg-gray-50 px-3 py-3">
+          <Text className="mr-1 text-lg">{selectedCountry.flag}</Text>
+          <Text className="mr-1 text-base text-gray-800">{selectedCountry.dialCode}</Text>
           <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
         </TouchableOpacity>
-        
+
         {/* Phone Number Input */}
-        <View className="flex-1 relative">
+        <View className="relative flex-1">
           <TextInput
             value={value.replace(selectedCountry.dialCode, '')}
             onChangeText={(text) => handlePhoneChange(selectedCountry.dialCode + text)}
             placeholder={placeholder}
             keyboardType="phone-pad"
-            className="w-full bg-gray-50 border border-gray-200 rounded-r-xl px-4 py-3 pr-12 text-base text-gray-800 border-l-0"
+            className="w-full rounded-r-xl border border-l-0 border-gray-200 bg-gray-50 px-4 py-3 pr-12 text-base text-gray-800"
             placeholderTextColor="#9CA3AF"
           />
           <View className="absolute right-3 top-3">
@@ -150,23 +136,18 @@ export default function PhoneInput({
       </View>
 
       {/* Country Picker Modal */}
-      <Modal
-        visible={showCountryPicker}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
+      <Modal visible={showCountryPicker} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity
               onPress={() => setShowCountryPicker(false)}
-              style={styles.closeButton}
-            >
+              style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#374151" />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Pilih Negara</Text>
             <View style={styles.placeholder} />
           </View>
-          
+
           {/* Search Input */}
           <View style={styles.searchContainer}>
             <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
@@ -178,7 +159,7 @@ export default function PhoneInput({
               placeholderTextColor="#9CA3AF"
             />
           </View>
-          
+
           {/* Countries List */}
           <FlatList
             data={filteredCountries}
@@ -190,7 +171,7 @@ export default function PhoneInput({
         </View>
       </Modal>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -263,4 +244,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
-})
+});

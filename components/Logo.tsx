@@ -25,11 +25,7 @@ const logoSvg = `<svg width="120" height="120" viewBox="0 0 120 120" fill="none"
 export const Logo: React.FC<LogoProps> = ({ size = 96, className = '' }) => {
   return (
     <View className={`${className}`} style={{ width: size, height: size }}>
-      <SvgXml
-        xml={logoSvg}
-        width="100%"
-        height="100%"
-      />
+      <SvgXml xml={logoSvg} width="100%" height="100%" />
     </View>
   );
 };

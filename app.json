@@ -12,9 +12,7 @@
       "tsconfigPaths": true
     },
 
-    "plugins": [
-      "expo-image-picker"
-    ],
+    "plugins": ["expo-image-picker"],
 
     "orientation": "portrait",
     "icon": "./assets/logo.svg",
@@ -40,11 +38,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ]
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     }
   }
 }

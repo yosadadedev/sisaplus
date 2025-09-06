@@ -1,0 +1,122 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection rules
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Allow reading user data for other authenticated users (for seller info)
+      allow read: if request.auth != null;
+    }
+    
+    // Foods collection rules
+    match /foods/{foodId} {
+      // Anyone can read available foods
+      allow read: if request.auth != null;
+      
+      // Only the seller can create, update, or delete their own foods
+      allow create: if request.auth != null && 
+                   request.auth.uid == resource.data.sellerId;
+      
+      allow update, delete: if request.auth != null && 
+                           request.auth.uid == resource.data.sellerId;
+      
+      // Allow creation if the sellerId matches the authenticated user
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.sellerId;
+    }
+    
+    // Bookings collection rules
+    match /bookings/{bookingId} {
+      // Users can read bookings where they are either buyer or seller
+      allow read: if request.auth != null && 
+                 (request.auth.uid == resource.data.buyerId || 
+                  request.auth.uid == resource.data.sellerId);
+      
+      // Only buyers can create bookings
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.buyerId;
+      
+      // Both buyer and seller can update booking status
+      allow update: if request.auth != null && 
+                   (request.auth.uid == resource.data.buyerId || 
+                    request.auth.uid == resource.data.sellerId) &&
+                   // Only allow updating specific fields
+                   request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly(['status', 'pickupTime', 'notes', 'updatedAt']);
+      
+      // Only buyers can delete their own bookings
+      allow delete: if request.auth != null && 
+                   request.auth.uid == resource.data.buyerId;
+    }
+    
+    // Helper functions for validation
+    function isValidUser(userData) {
+      return userData.keys().hasAll(['email', 'name', 'createdAt', 'updatedAt']) &&
+             userData.email is string &&
+             userData.name is string &&
+             userData.createdAt is timestamp &&
+             userData.updatedAt is timestamp;
+    }
+    
+    function isValidFood(foodData) {
+      return foodData.keys().hasAll(['name', 'description', 'price', 'category', 
+                                    'isAvailable', 'sellerId', 'sellerName', 
+                                    'createdAt', 'updatedAt']) &&
+             foodData.name is string &&
+             foodData.description is string &&
+             foodData.price is number &&
+             foodData.price >= 0 &&
+             foodData.category is string &&
+             foodData.isAvailable is bool &&
+             foodData.sellerId is string &&
+             foodData.sellerName is string &&
+             foodData.createdAt is timestamp &&
+             foodData.updatedAt is timestamp;
+    }
+    
+    function isValidBooking(bookingData) {
+      return bookingData.keys().hasAll(['foodId', 'foodName', 'foodPrice', 
+                                       'buyerId', 'buyerName', 'sellerId', 
+                                       'sellerName', 'quantity', 'totalPrice', 
+                                       'status', 'createdAt', 'updatedAt']) &&
+             bookingData.foodId is string &&
+             bookingData.foodName is string &&
+             bookingData.foodPrice is number &&
+             bookingData.buyerId is string &&
+             bookingData.buyerName is string &&
+             bookingData.sellerId is string &&
+             bookingData.sellerName is string &&
+             bookingData.quantity is number &&
+             bookingData.quantity > 0 &&
+             bookingData.totalPrice is number &&
+             bookingData.totalPrice >= 0 &&
+             bookingData.status in ['pending', 'confirmed', 'completed', 'cancelled'] &&
+             bookingData.createdAt is timestamp &&
+             bookingData.updatedAt is timestamp;
+    }
+    
+    // Additional validation rules
+    match /users/{userId} {
+      allow write: if request.auth != null && 
+                  request.auth.uid == userId &&
+                  isValidUser(request.resource.data);
+    }
+    
+    match /foods/{foodId} {
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.sellerId &&
+                   isValidFood(request.resource.data);
+      
+      allow update: if request.auth != null && 
+                   request.auth.uid == resource.data.sellerId &&
+                   isValidFood(request.resource.data);
+    }
+    
+    match /bookings/{bookingId} {
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.buyerId &&
+                   isValidBooking(request.resource.data);
+    }
+  }
+}
