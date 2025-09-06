@@ -233,7 +233,75 @@ export default function MyOrdersScreen() {
               <View className="mb-4">
                 <Text className="mb-3 text-lg font-bold text-gray-900">Pesanan & Booking</Text>
                 
-
+                {/* My Donations Items - hanya yang belum ada booking */}
+                {myDonations.filter(donation => 
+                  !incomingBookings.some(booking => booking.food_id === donation.id)
+                ).map((donation) => {
+                  const isExpired = donation.expired_at && new Date(donation.expired_at) <= new Date();
+                  return (
+                    <TouchableOpacity
+                      key={`donation-${donation.id}`}
+                      onPress={() => navigation.navigate('FoodDetail', { foodId: donation.id })}
+                      className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                      <View className="flex-row">
+                        <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
+                          {donation.image_urls && donation.image_urls.length > 0 && donation.image_urls[0] ? (
+                            <Image 
+                              source={{ uri: donation.image_urls[0] }} 
+                              className="h-full w-full" 
+                              resizeMode="cover" 
+                              onError={() => console.log('Error loading image:', donation.image_urls?.[0])}
+                            />
+                          ) : (
+                            <View className="h-full w-full items-center justify-center">
+                              <Ionicons name="restaurant" size={24} color="#9CA3AF" />
+                            </View>
+                          )}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-base font-semibold text-gray-900">
+                            {donation.title}
+                          </Text>
+                          <Text className="mt-1 text-sm text-gray-600">
+                            Donasi Saya - Belum ada booking
+                          </Text>
+                          <View className="mt-1 flex-row items-center">
+                            <View className={`mr-2 h-2 w-2 rounded-full ${
+                              !isExpired ? 'bg-green-500' : 'bg-red-500'
+                            }`} />
+                            <Text className={`text-xs font-medium ${
+                              !isExpired ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {!isExpired ? 'Aktif' : 'Kadaluwarsa'}
+                            </Text>
+                          </View>
+                          <Text className="mt-1 text-xs text-gray-500">
+                            Berlaku sampai: {donation.expired_at ? new Date(donation.expired_at).toLocaleDateString('id-ID') : 'Tidak tersedia'}
+                          </Text>
+                          <Text className="mt-1 text-xs text-gray-500">
+                            {donation.created_at
+                              ? formatDistanceToNow(new Date(donation.created_at), {
+                                  addSuffix: true,
+                                  locale: id,
+                                })
+                              : 'Waktu tidak tersedia'}
+                          </Text>
+                        </View>
+                        <View className="items-end justify-center">
+                          <View className={`rounded-full px-2 py-1 ${
+                            !isExpired ? 'bg-blue-100' : 'bg-red-100'
+                          }`}>
+                            <Text className={`text-xs font-medium ${
+                              !isExpired ? 'text-blue-800' : 'text-red-800'
+                            }`}>
+                              {!isExpired ? 'Menunggu Booking' : 'Expired'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
                 
                 {/* Booking Masuk Items */}
                 {incomingBookings.map((booking) => {
