@@ -42,7 +42,7 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.yosadadev.sisaplus"
+      "package": "com.yosadalabs.sisaplus"
     },
     "extra": {
       "eas": {
