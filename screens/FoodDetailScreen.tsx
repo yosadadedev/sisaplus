@@ -265,7 +265,7 @@ export default function FoodDetailScreen() {
       case 'pending':
         return isDonor ? 'Menunggu Konfirmasi Anda' : 'Menunggu Konfirmasi Donatur';
       case 'confirmed':
-        return isDonor ? 'Siap Diambil' : 'Pesanan Dikonfirmasi Donatur:\nSelematat mengambil!';
+        return isDonor ? 'Siap Diambil' : 'Pesanan Dikonfirmasi Donatur:\nSilahkan ambil!';
       case 'completed':
         return 'Pesanan Selesai';
       case 'cancelled':
@@ -655,8 +655,8 @@ export default function FoodDetailScreen() {
                 ])}
                 className="items-center justify-center rounded-2xl bg-green-500 py-4">
                 <View className="flex-row items-center">
-                  <Ionicons name="star" size={20} color="white" />
-                  <Text className="ml-2 text-lg font-bold text-white">Terima Pesanan Ini</Text>
+                  <Ionicons name="checkmark-done-circle-outline" size={20} color="white" />
+                  <Text className="ml-2 text-lg font-bold text-white">Pesanan Diterima</Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -668,7 +668,11 @@ export default function FoodDetailScreen() {
           <View className="items-center justify-center rounded-2xl bg-blue-100 py-4">
             <View className="flex-row items-center">
               <Ionicons name="checkmark-done" size={20} color="#2563eb" />
-              <Text className="ml-2 text-lg font-bold text-blue-700">Pesanan Selesai</Text>
+              {isOwner ? (
+                <Text className="ml-2 text-lg font-bold text-blue-700">Pesanan Selesai</Text>
+              ) : (
+                <Text className="ml-2 text-lg font-bold text-blue-700">Pesanan Diterima</Text>
+              )}
             </View>
           </View>
         )}
