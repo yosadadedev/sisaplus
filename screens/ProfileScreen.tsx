@@ -1,14 +1,22 @@
 // Melihat isi file ProfileScreen.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, initialize } = useAuthStore();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      // Refetch user data when screen is focused
+      initialize();
+    }
+  }, [isFocused, initialize]);
 
   const handleSignOut = async () => {
     Alert.alert('Keluar', 'Apakah Anda yakin ingin keluar dari akun?', [

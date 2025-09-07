@@ -62,8 +62,23 @@ export default function MyOrdersScreen() {
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* Header */}
       <View className="border-b border-gray-200 bg-white px-4 py-4">
-        <Text className="text-2xl font-bold text-gray-900">Aktivitas Saya</Text>
-        <Text className="mt-1 text-gray-600">Kelola pesanan dan donasi Anda</Text>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1">
+            <Text className="text-2xl font-bold text-gray-900">Aktivitas Saya</Text>
+            <Text className="mt-1 text-gray-600">Kelola pesanan dan donasi Anda</Text>
+          </View>
+          
+          <TouchableOpacity
+            onPress={onRefresh}
+            className="h-10 w-10 items-center justify-center rounded-full bg-secondary-100"
+            disabled={refreshing}>
+            <Ionicons 
+              name={refreshing ? "hourglass" : "refresh"} 
+              size={20} 
+              color={refreshing ? "#9ca3af" : "#6b7280"} 
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tab Navigation */}

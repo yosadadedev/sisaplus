@@ -247,11 +247,29 @@ export default function HomeScreen() {
             <Text className="text-gray-600">Temukan makanan di sekitar Anda</Text>
           </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Profile')}
-            className="h-10 w-10 items-center justify-center rounded-full bg-primary-100">
-            <Ionicons name="person" size={20} color="#ef4444" />
-          </TouchableOpacity>
+          <View className="flex-row items-center space-x-2">
+            <TouchableOpacity
+              onPress={() => {
+                setRefreshing(true);
+                loadFoods(storeSelectedCategory || undefined, searchText).finally(() =>
+                  setRefreshing(false)
+                );
+              }}
+              className="h-10 w-10 items-center justify-center rounded-full bg-secondary-100"
+              disabled={refreshing}>
+              <Ionicons 
+                name={refreshing ? "hourglass" : "refresh"} 
+                size={20} 
+                color={refreshing ? "#9ca3af" : "#6b7280"} 
+              />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Profile')}
+              className="h-10 w-10 items-center justify-center rounded-full bg-primary-100">
+              <Ionicons name="person" size={20} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search Bar */}
