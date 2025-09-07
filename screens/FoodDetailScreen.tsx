@@ -643,7 +643,14 @@ export default function FoodDetailScreen() {
               <TouchableOpacity
                 onPress={() => Alert.alert('Konfirmasi', 'Tandai pesanan sebagai diterima dan beri rating?', [
                   { text: 'Batal', style: 'cancel' },
-                  { text: 'Pesanan Diterima', onPress: handleCompleteBooking }
+                  { text: 'Pesanan Diterima', onPress: () => {
+                    handleCompleteBooking();
+                    // Navigate to MyOrders screen with orders tab
+                    (navigation as any).navigate('MainTabs', {
+                      screen: 'MyOrders',
+                      params: { initialTab: 'orders' }
+                    });
+                  }}
                 ])}
                 className="items-center justify-center rounded-2xl bg-green-500 py-4">
                 <View className="flex-row items-center">

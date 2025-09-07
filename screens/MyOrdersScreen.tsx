@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useNavigation, useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { useFoodStore } from '../store/foodStore';
 import { useAuthStore } from '../store/authStore';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { MyOrdersScreenNavigationProp } from '../types/navigation';
+import { MyOrdersScreenNavigationProp, MainTabParamList } from '../types/navigation';
 
 type TabType = 'donations' | 'orders';
 
 export default function MyOrdersScreen() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<MyOrdersScreenNavigationProp>();
+  const route = useRoute<RouteProp<MainTabParamList, 'MyOrders'>>();
   const { user } = useAuthStore();
   const {
     foods,
@@ -26,7 +27,7 @@ export default function MyOrdersScreen() {
     updateBookingStatus,
   } = useFoodStore();
 
-  const [activeTab, setActiveTab] = useState<TabType>('donations');
+  const [activeTab, setActiveTab] = useState<TabType>(route.params?.initialTab || 'donations');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {

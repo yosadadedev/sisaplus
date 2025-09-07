@@ -7,7 +7,10 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
-  MainTabs: undefined;
+  MainTabs: {
+    screen?: keyof MainTabParamList;
+    params?: MainTabParamList[keyof MainTabParamList];
+  } | undefined;
   FoodDetail: { foodId: string };
   EditProfile: undefined;
   Help: undefined;
@@ -17,7 +20,7 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   AddFood: undefined;
-  MyOrders: undefined;
+  MyOrders: { initialTab?: 'donations' | 'orders' } | undefined;
   Profile: undefined;
 };
 
