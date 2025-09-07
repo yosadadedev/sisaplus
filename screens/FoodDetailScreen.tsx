@@ -30,7 +30,7 @@ export default function FoodDetailScreen() {
   const navigation = useNavigation();
   const { foodId } = route.params as RouteParams;
   const { user } = useAuthStore();
-  const { foods, bookFood, isLoading, userBookings } = useFoodStore();
+  const { foods, bookFood, isLoading, userBookings, incomingBookings, loadIncomingBookings } = useFoodStore();
 
   const [food, setFood] = useState<Food | undefined>(undefined);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -63,18 +63,36 @@ export default function FoodDetailScreen() {
        }
        
        setFood(foundFood);
-      
-      // Check if user has already booked this food
-      if (user && foundFood) {
-        const existingBooking = userBookings.find(
-          (booking) => booking.food_id === foundFood.id && booking.user_id === user.id
-        );
-        setUserBooking(existingBooking);
-      }
     };
     
     loadFoodData();
-  }, [foodId, foods, userBookings, user]);
+    
+    // Load incoming bookings for owner
+    if (user) {
+      loadIncomingBookings();
+    }
+  }, [foodId, user]);
+
+  // Separate useEffect to update userBooking when bookings change
+  useEffect(() => {
+    if (user && food) {
+      let existingBooking;
+      
+      if (food.donor_id === user.id) {
+        // For owner/donatur: check incoming bookings for this food
+        existingBooking = incomingBookings.find(
+          (booking) => booking.food_id === food.id
+        );
+      } else {
+        // For receiver: check user's own bookings
+        existingBooking = userBookings.find(
+          (booking) => booking.food_id === food.id && booking.user_id === user.id
+        );
+      }
+      
+      setUserBooking(existingBooking || null);
+    }
+  }, [userBookings, incomingBookings, food?.id, user?.id]);
 
   const handleBookFood = async () => {
     if (!food || !user) return;
@@ -110,35 +128,18 @@ export default function FoodDetailScreen() {
 
     try {
       setBookingLoading(true);
-      // Update booking status to confirmed
-      const { updateDoc, doc } = await import('firebase/firestore');
-      const { db } = await import('../config/firebase');
-      await updateDoc(doc(db, 'bookings', userBooking.id), {
-        status: 'confirmed',
-        confirmedAt: new Date().toISOString()
-      });
+      // Update booking status using store method
+      const { updateBookingStatus } = useFoodStore.getState();
+      await updateBookingStatus(userBooking.id, 'confirmed');
+      
       Alert.alert('Berhasil', 'Pesanan telah dikonfirmasi!');
-      // Refresh data
-      const loadFoodData = async () => {
-        let foundFood = foods.find((f) => f.id === foodId);
-        if (!foundFood && foodId) {
-          try {
-            const { foodService } = await import('../services/firebaseService');
-            const fetchedFood = await foodService.getFoodById(foodId);
-            foundFood = fetchedFood || undefined;
-          } catch (error) {
-            console.error('Error fetching food data:', error);
-          }
-        }
-        setFood(foundFood);
-        if (user && foundFood) {
-          const existingBooking = userBookings.find(
-            (booking) => booking.food_id === foundFood.id && booking.user_id === user.id
-          );
-          setUserBooking(existingBooking);
-        }
-      };
-      await loadFoodData();
+      
+      // Update local userBooking state
+      setUserBooking({
+        ...userBooking,
+        status: 'confirmed',
+        updated_at: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error confirming booking:', error);
       Alert.alert('Error', 'Gagal mengkonfirmasi pesanan');
@@ -155,35 +156,18 @@ export default function FoodDetailScreen() {
 
     try {
       setBookingLoading(true);
-      // Update booking status to completed
-      const { updateDoc, doc } = await import('firebase/firestore');
-      const { db } = await import('../config/firebase');
-      await updateDoc(doc(db, 'bookings', userBooking.id), {
-        status: 'completed',
-        updatedAt: new Date().toISOString()
-      });
+      // Update booking status using store method
+      const { updateBookingStatus } = useFoodStore.getState();
+      await updateBookingStatus(userBooking.id, 'completed');
+      
       Alert.alert('Berhasil', 'Pesanan telah selesai! Terima kasih atas rating Anda.');
-      // Refresh data
-      const loadFoodData = async () => {
-        let foundFood = foods.find((f) => f.id === foodId);
-        if (!foundFood && foodId) {
-          try {
-            const { foodService } = await import('../services/firebaseService');
-            const fetchedFood = await foodService.getFoodById(foodId);
-            foundFood = fetchedFood || undefined;
-          } catch (error) {
-            console.error('Error fetching food data:', error);
-          }
-        }
-        setFood(foundFood);
-        if (user && foundFood) {
-          const existingBooking = userBookings.find(
-            (booking) => booking.food_id === foundFood.id && booking.user_id === user.id
-          );
-          setUserBooking(existingBooking);
-        }
-      };
-      await loadFoodData();
+      
+      // Update local userBooking state
+      setUserBooking({
+        ...userBooking,
+        status: 'completed',
+        updated_at: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error completing booking:', error);
       Alert.alert('Error', 'Gagal menyelesaikan pesanan');
@@ -241,6 +225,8 @@ export default function FoodDetailScreen() {
   const isOwner = food && user && food.donor_id === user.id;
   const hasActiveBooking = userBooking && ['pending', 'confirmed'].includes(userBooking.status);
   const canBook = food && food.status === 'available' && !isExpired && !isOwner && !hasActiveBooking;
+
+  // Debug logging removed to prevent re-render
   
   const getBookingStatusText = () => {
     if (!userBooking) return null;
@@ -259,7 +245,7 @@ export default function FoodDetailScreen() {
         return null;
     }
   };
-  console.log('food', food)
+  // Food logging removed to prevent re-render
   const getBookingStatusColor = () => {
     if (!userBooking) return 'bg-gray-500';
     switch (userBooking.status) {
@@ -541,6 +527,7 @@ export default function FoodDetailScreen() {
 
       {/* Bottom Action */}
       <View className="border-t border-gray-100 bg-white px-6 py-6">
+        {/* 1. Status awal (belum dibooking) */}
         {canBook && (
           <TouchableOpacity
             onPress={() => setShowBookingModal(true)}
@@ -564,7 +551,18 @@ export default function FoodDetailScreen() {
           </TouchableOpacity>
         )}
         
-        {userBooking && userBooking.status === 'pending' && (
+        {/* Status awal untuk owner */}
+        {isOwner && !userBooking && (
+          <View className="items-center justify-center rounded-2xl bg-gray-100 py-4">
+            <View className="flex-row items-center">
+              <Ionicons name="person" size={20} color="#6b7280" />
+              <Text className="ml-2 text-lg font-bold text-gray-600">Ini adalah donasi Anda</Text>
+            </View>
+          </View>
+        )}
+        
+        {/* 2. Setelah pesanan dibooking receiver */}
+        { userBooking && userBooking.status === 'pending' && (
           <View>
             {isOwner ? (
               <TouchableOpacity
@@ -589,13 +587,14 @@ export default function FoodDetailScreen() {
           </View>
         )}
         
+        {/* 3. Setelah pesanan dikonfirmasi donor */}
         {userBooking && userBooking.status === 'confirmed' && (
           <View>
             {isOwner ? (
               <View className="items-center justify-center rounded-2xl bg-green-100 py-4">
                 <View className="flex-row items-center">
                   <Ionicons name="checkmark-done" size={20} color="#059669" />
-                  <Text className="ml-2 text-lg font-bold text-green-700">Siap Diambil Receiver</Text>
+                  <Text className="ml-2 text-lg font-bold text-green-700">Pesanan Siap Diambil Receiver</Text>
                 </View>
               </View>
             ) : (
@@ -607,22 +606,14 @@ export default function FoodDetailScreen() {
                 className="items-center justify-center rounded-2xl bg-green-500 py-4">
                 <View className="flex-row items-center">
                   <Ionicons name="star" size={20} color="white" />
-                  <Text className="ml-2 text-lg font-bold text-white">Pesanan Diterima & Beri Rating</Text>
+                  <Text className="ml-2 text-lg font-bold text-white">Terima Pesanan Ini</Text>
                 </View>
               </TouchableOpacity>
             )}
           </View>
         )}
         
-        {userBooking && userBooking.status === 'completed' && (
-          <View className="items-center justify-center rounded-2xl bg-blue-100 py-4">
-            <View className="flex-row items-center">
-              <Ionicons name="checkmark-circle" size={20} color="#059669" />
-              <Text className="ml-2 text-lg font-bold text-green-700">Pesanan Dikonfirmasi - Siap Diambil</Text>
-            </View>
-          </View>
-        )}
-        
+        {/* Status pesanan selesai */}
         {userBooking && userBooking.status === 'completed' && (
           <View className="items-center justify-center rounded-2xl bg-blue-100 py-4">
             <View className="flex-row items-center">
@@ -632,6 +623,7 @@ export default function FoodDetailScreen() {
           </View>
         )}
         
+        {/* Status pesanan dibatalkan */}
         {userBooking && userBooking.status === 'cancelled' && (
           <View className="items-center justify-center rounded-2xl bg-red-100 py-4">
             <View className="flex-row items-center">
@@ -641,15 +633,7 @@ export default function FoodDetailScreen() {
           </View>
         )}
         
-        {isOwner && (
-          <View className="items-center justify-center rounded-2xl bg-gray-100 py-4">
-            <View className="flex-row items-center">
-              <Ionicons name="person" size={20} color="#6b7280" />
-              <Text className="ml-2 text-lg font-bold text-gray-600">Ini adalah donasi Anda</Text>
-            </View>
-          </View>
-        )}
-        
+        {/* Status makanan kedaluwarsa */}
         {isExpired && !isOwner && !userBooking && (
           <View className="items-center justify-center rounded-2xl bg-red-100 py-4">
             <View className="flex-row items-center">
