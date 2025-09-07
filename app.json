@@ -42,13 +42,13 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.yosadadev.sisaplus"
+      "package": "com.yosadalabs.sisaplus"
     },
     "extra": {
       "eas": {
         "projectId": "4022d6a6-1957-495b-992c-1d6224a96437"
       }
     },
-    "owner": "yosadadev"
+    "owner": "yosadalabs"
   }
 }
