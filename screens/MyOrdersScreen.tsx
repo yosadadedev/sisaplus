@@ -122,17 +122,19 @@ export default function MyOrdersScreen() {
                     onPress={() => {
                       if (food?.id) {
                         navigation.navigate('FoodDetail', { foodId: food.id });
+                      } else if (booking.food_id) {
+                        // Try to navigate with booking.food_id if food data is not available
+                        navigation.navigate('FoodDetail', { foodId: booking.food_id });
                       }
                     }}
                     className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                     <View className="flex-row">
                       <View className="mr-3 h-16 w-16 overflow-hidden rounded-lg bg-gray-200">
-                        {food?.image_urls && food.image_urls.length > 0 && food.image_urls[0] ? (
+                        {booking?.food?.image_urls && booking?.food?.image_urls?.length > 0 && booking?.food?.image_urls[0] ? (
                           <Image 
-                            source={{ uri: food.image_urls[0] }} 
+                            source={{ uri: booking?.food?.image_urls[0] }} 
                             className="h-full w-full" 
-                            resizeMode="cover" 
-                            onError={() => console.log('Error loading image:', food.image_urls?.[0])}
+                            resizeMode="cover"
                           />
                         ) : (
                           <View className="h-full w-full items-center justify-center">
@@ -142,7 +144,7 @@ export default function MyOrdersScreen() {
                       </View>
                       <View className="flex-1">
                         <Text className="text-base font-semibold text-gray-900">
-                          {food?.title || (booking.status === 'completed' ? 'Makanan tidak ditemukan' : 'Data makanan tidak tersedia')}
+                          {booking?.food?.title}
                         </Text>
                         <Text className="mt-1 text-sm text-gray-600">Status: {booking.status}</Text>
                         <Text className="mt-1 text-xs text-gray-500">

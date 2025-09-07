@@ -45,12 +45,18 @@ export default function FoodDetailScreen() {
       // First try to find food in the store
       let foundFood = foods.find((f) => f.id === foodId);
       
-      // If not found in store (e.g., user's own donations), fetch directly from Firebase
+      // If not found in store, fetch directly from Firebase
        if (!foundFood && foodId) {
          try {
+           console.log('Food not found in store, fetching from Firebase:', foodId);
            const { foodService } = await import('../services/firebaseService');
            const fetchedFood = await foodService.getFoodById(foodId);
-           foundFood = fetchedFood || undefined;
+           if (fetchedFood) {
+             foundFood = fetchedFood;
+             console.log('Successfully fetched food from Firebase:', fetchedFood.title);
+           } else {
+             console.warn('Food not found in Firebase:', foodId);
+           }
          } catch (error) {
            console.error('Error fetching food data:', error);
          }

@@ -212,12 +212,18 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
       const bookingsWithFood: BookingWithFood[] = await Promise.all(
         bookings.map(async (booking: Booking) => {
           try {
+            console.log('Fetching food for booking:', booking.id, 'food_id:', booking.food_id);
             const food = await foodService.getFoodById(booking.food_id);
+            
+            if (!food) {
+              console.warn('Food not found for booking:', booking.id, 'food_id:', booking.food_id);
+            }
+            
             return {
               ...booking,
               food: food || {
                 id: booking.food_id,
-                title: 'Makanan tidak ditemukan',
+                title: 'Data makanan tidak tersedia',
                 description: '',
                 unit: '',
                 pickup_address: '',
