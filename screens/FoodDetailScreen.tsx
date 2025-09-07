@@ -176,6 +176,34 @@ export default function FoodDetailScreen() {
     }
   };
 
+  const handleRejectBooking = async () => {
+    if (!userBooking?.id) {
+      Alert.alert('Error', 'Data booking tidak tersedia');
+      return;
+    }
+
+    try {
+      setBookingLoading(true);
+      // Update booking status using store method
+      const { updateBookingStatus } = useFoodStore.getState();
+      await updateBookingStatus(userBooking.id, 'cancelled');
+      
+      Alert.alert('Berhasil', 'Pesanan telah ditolak.');
+      
+      // Update local userBooking state
+      setUserBooking({
+        ...userBooking,
+        status: 'cancelled',
+        updated_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error rejecting booking:', error);
+      Alert.alert('Error', 'Gagal menolak pesanan');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   const handleContactDonor = () => {
     Alert.alert('Info', 'Fitur kontak donor akan segera tersedia.', [{ text: 'OK' }]);
   };
@@ -565,17 +593,31 @@ export default function FoodDetailScreen() {
         { userBooking && userBooking.status === 'pending' && (
           <View>
             {isOwner ? (
-              <TouchableOpacity
-                onPress={() => Alert.alert('Konfirmasi', 'Konfirmasi pesanan ini?', [
-                  { text: 'Batal', style: 'cancel' },
-                  { text: 'Konfirmasi', onPress: handleConfirmBooking }
-                ])}
-                className="items-center justify-center rounded-2xl bg-blue-500 py-4">
-                <View className="flex-row items-center">
-                  <Ionicons name="checkmark-circle" size={20} color="white" />
-                  <Text className="ml-2 text-lg font-bold text-white">Konfirmasi Pesanan</Text>
-                </View>
-              </TouchableOpacity>
+              <View className="flex-row space-x-3">
+                <TouchableOpacity
+                  onPress={() => Alert.alert('Tolak Pesanan', 'Yakin ingin menolak pesanan ini?', [
+                    { text: 'Batal', style: 'cancel' },
+                    { text: 'Tolak', style: 'destructive', onPress: handleRejectBooking }
+                  ])}
+                  className="flex-1 items-center justify-center rounded-2xl bg-red-500 py-4">
+                  <View className="flex-row items-center">
+                    <Ionicons name="close-circle" size={20} color="white" />
+                    <Text className="ml-2 text-lg font-bold text-white">Tolak</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => Alert.alert('Konfirmasi', 'Konfirmasi pesanan ini?', [
+                    { text: 'Batal', style: 'cancel' },
+                    { text: 'Konfirmasi', onPress: handleConfirmBooking }
+                  ])}
+                  className="flex-1 items-center justify-center rounded-2xl bg-green-500 py-4">
+                  <View className="flex-row items-center">
+                    <Ionicons name="checkmark-circle" size={20} color="white" />
+                    <Text className="ml-2 text-lg font-bold text-white">Konfirmasi</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             ) : (
               <View className="items-center justify-center rounded-2xl bg-yellow-100 py-4">
                 <View className="flex-row items-center">
