@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { foodService, bookingService } from '../services/firebaseService';
 import { Food, Booking, BookingWithFood } from '../lib/database';
 import { useAuthStore } from './authStore';
+import { notificationService } from '../services/notificationService';
 import { Unsubscribe } from 'firebase/firestore';
 
 
@@ -429,6 +430,22 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
         food,
       };
 
+      // Send notification to food donor (cross-device)
+      try {
+        // Kirim notifikasi ke donor makanan
+        await notificationService.sendNotificationToUser(
+          food.donor_id,
+          {
+            title: 'Pesanan Baru!',
+            body: `Ada yang tertarik dengan ${food.title}`,
+            data: { type: 'new_booking', bookingId: newBooking.id, foodId }
+          }
+        );
+        console.log('Cross-device notification sent to donor:', food.donor_id);
+      } catch (notifError) {
+        console.warn('Failed to send notification:', notifError);
+      }
+
       // Add to user bookings
       const currentBookings = get().userBookings;
       set({ userBookings: [...currentBookings, bookingWithFood], isLoading: false });
@@ -460,6 +477,45 @@ export const useFoodStore = create<FoodStore>((set, get) => ({
           ? { ...booking, status, updated_at: getCurrentTimestamp() }
           : booking
       );
+
+      // Send notification based on status update
+      const booking = [...currentBookings, ...currentIncomingBookings].find(b => b.id === bookingId);
+      if (booking) {
+        try {
+          let title = '';
+          let body = '';
+          
+          switch (status) {
+            case 'confirmed':
+              title = 'Pesanan Dikonfirmasi!';
+              body = `Pesanan ${booking.food.title} telah dikonfirmasi`;
+              break;
+            case 'completed':
+              title = 'Pesanan Selesai!';
+              body = `Pesanan ${booking.food.title} telah selesai`;
+              break;
+            case 'cancelled':
+              title = 'Pesanan Dibatalkan';
+              body = `Pesanan ${booking.food.title} telah dibatalkan`;
+              break;
+          }
+          
+          if (title && body) {
+            // Kirim notifikasi ke customer yang melakukan booking (cross-device)
+            await notificationService.sendNotificationToUser(
+              booking.user_id,
+              {
+                title,
+                body,
+                data: { type: 'status_update', bookingId, status }
+              }
+            );
+            console.log('Cross-device status notification sent to customer:', booking.user_id);
+          }
+        } catch (notifError) {
+          console.warn('Failed to send notification:', notifError);
+        }
+      }
 
       set({ 
         userBookings: updatedBookings, 

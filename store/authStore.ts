@@ -5,6 +5,7 @@ import { firebaseAuth, RegisterData } from '../services/firebaseAuth';
 import { userService } from '../services/firebaseService';
 import { FirebaseUser } from '../types/firebase';
 import { User as FirebaseAuthUser } from 'firebase/auth';
+import { notificationService } from '../services/notificationService';
 
 interface AuthState {
   user: User | null;
@@ -79,6 +80,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
           set({ user: localUser, firebaseUser });
           await AsyncStorage.setItem('currentUser', JSON.stringify(localUser));
+          
+          // Initialize FCM for the user
+          try {
+            await notificationService.initializeFCMForUser(firebaseUser.uid);
+            console.log('FCM initialized for user:', firebaseUser.uid);
+          } catch (fcmError) {
+            console.warn('Failed to initialize FCM:', fcmError);
+          }
         } else {
           set({ user: null, firebaseUser: null });
           await AsyncStorage.removeItem('currentUser');
@@ -124,6 +133,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
         set({ user: localUser, firebaseUser: result.user });
         await AsyncStorage.setItem('currentUser', JSON.stringify(localUser));
+        
+        // Initialize FCM for the user
+        try {
+          await notificationService.initializeFCMForUser(result.user.uid);
+          console.log('FCM initialized for user on login:', result.user.uid);
+        } catch (fcmError) {
+          console.warn('Failed to initialize FCM on login:', fcmError);
+        }
+        
         return { error: null };
       } else {
         return { error: { message: result.error || 'Login failed' } };
@@ -166,6 +184,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
         set({ user: localUser, firebaseUser: result.user });
         await AsyncStorage.setItem('currentUser', JSON.stringify(localUser));
+        
+        // Initialize FCM for the new user
+        try {
+          await notificationService.initializeFCMForUser(result.user.uid);
+          console.log('FCM initialized for new user:', result.user.uid);
+        } catch (fcmError) {
+          console.warn('Failed to initialize FCM for new user:', fcmError);
+        }
+        
         return { success: true, data: localUser };
       } else {
         return { success: false, error: result.error || 'Registration failed' };

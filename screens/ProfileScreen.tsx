@@ -53,8 +53,7 @@ export default function ProfileScreen() {
       title: 'Notifikasi',
       subtitle: 'Atur preferensi notifikasi',
       onPress: () => {
-        // TODO: Navigate to notification settings
-        Alert.alert('Info', 'Fitur pengaturan notifikasi akan segera hadir');
+        navigation.navigate('NotificationSettings' as never);
       },
     },
     {

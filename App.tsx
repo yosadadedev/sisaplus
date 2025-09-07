@@ -15,6 +15,7 @@ import OnboardingScreen from './screens/OnboardingScreen';
 import LoginScreen from './screens/LoginScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
 import HelpScreen from './screens/HelpScreen';
+import NotificationSettingsScreen from './screens/NotificationSettingsScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import FoodDetailScreen from './screens/FoodDetailScreen';
@@ -25,6 +26,9 @@ import ProfileScreen from './screens/ProfileScreen';
 // Stores
 import { useAuthStore } from './store/authStore';
 import { useFoodStore } from './store/foodStore';
+
+// Services
+import { notificationService } from './services/notificationService';
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -102,23 +106,35 @@ export default function App() {
     // Check onboarding status
     checkOnboardingStatus();
 
-    // Deep link handling removed since we're using SQLite instead of Supabase auth
+    // Setup notifications
+    setupNotifications();
 
     // Setup notification listeners
-    const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('Notification received:', notification);
-    });
-
-    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('Notification response:', response);
-      // Handle notification tap - navigate to relevant screen
-    });
+    const listeners = notificationService.setupNotificationListeners();
 
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener);
-      Notifications.removeNotificationSubscription(responseListener);
+      notificationService.removeNotificationListeners(listeners);
     };
   }, []);
+
+  const setupNotifications = async () => {
+    try {
+      // Setup notification channels (Android)
+      await notificationService.setupNotificationChannel();
+      
+      // Request permissions and get token
+      const hasPermission = await notificationService.requestPermissions();
+      if (hasPermission) {
+        const token = await notificationService.getExpoPushToken();
+        if (token) {
+          console.log('Notification setup completed with token:', token);
+          // TODO: Send token to your backend server
+        }
+      }
+    } catch (error) {
+      console.error('Error setting up notifications:', error);
+    }
+  };
 
   const checkOnboardingStatus = async () => {
     try {
@@ -191,6 +207,14 @@ export default function App() {
             <Stack.Screen
               name="Help"
               component={HelpScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen
+              name="NotificationSettings"
+              component={NotificationSettingsScreen}
               options={{
                 headerShown: false,
                 presentation: 'modal',
