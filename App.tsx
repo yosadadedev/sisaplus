@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, Alert } from 'react-native';
-import * as Notifications from 'expo-notifications';
+
 import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import './global.css';
@@ -27,15 +27,7 @@ import { useAuthStore } from './store/authStore';
 import { useFoodStore } from './store/foodStore';
 
 // Configure notifications
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -105,18 +97,9 @@ export default function App() {
     // Deep link handling removed since we're using SQLite instead of Supabase auth
 
     // Setup notification listeners
-    const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('Notification received:', notification);
-    });
-
-    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('Notification response:', response);
-      // Handle notification tap - navigate to relevant screen
-    });
-
+    // Cleanup if needed
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener);
-      Notifications.removeNotificationSubscription(responseListener);
+      // No cleanup needed
     };
   }, []);
 
