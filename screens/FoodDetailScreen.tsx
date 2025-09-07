@@ -560,7 +560,7 @@ export default function FoodDetailScreen() {
           <TouchableOpacity
             onPress={() => setShowBookingModal(true)}
             disabled={isLoading}
-            className="items-center justify-center rounded-2xl bg-blue-500 py-4 shadow-lg"
+            className="items-center justify-center rounded-2xl bg-primary-500 py-4 shadow-lg"
             style={{
               shadowColor: '#3b82f6',
               shadowOffset: { width: 0, height: 4 },
@@ -605,7 +605,7 @@ export default function FoodDetailScreen() {
                     <Text className="ml-2 text-lg font-bold text-white">Tolak</Text>
                   </View>
                 </TouchableOpacity>
-
+                  <View className="w-4" />
                 <TouchableOpacity
                   onPress={() => Alert.alert('Konfirmasi', 'Konfirmasi pesanan ini?', [
                     { text: 'Batal', style: 'cancel' },
@@ -646,10 +646,10 @@ export default function FoodDetailScreen() {
                   { text: 'Pesanan Diterima', onPress: () => {
                     handleCompleteBooking();
                     // Navigate to MyOrders screen with orders tab
-                    (navigation as any).navigate('MainTabs', {
-                      screen: 'MyOrders',
-                      params: { initialTab: 'orders' }
-                    });
+                    // (navigation as any).navigate('MainTabs', {
+                    //   screen: 'MyOrders',
+                    //   params: { initialTab: 'orders' }
+                    // });
                   }}
                 ])}
                 className="items-center justify-center rounded-2xl bg-green-500 py-4">
