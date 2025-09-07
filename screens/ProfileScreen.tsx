@@ -88,7 +88,7 @@ export default function ProfileScreen() {
           {/* User Info */}
           <View className="mt-4 flex-row items-center">
             <View className="h-16 w-16 items-center justify-center rounded-full bg-primary-100">
-              <Ionicons name="person" size={32} color="#3b82f6" />
+              <Ionicons name="person" size={32} color="#dc2626" />
             </View>
 
             <View className="ml-4 flex-1">

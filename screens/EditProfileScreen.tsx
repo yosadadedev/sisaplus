@@ -155,7 +155,7 @@ export default function EditProfileScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Profile Photo Section */}
         <View className="items-center py-8">
-          <TouchableOpacity onPress={showImagePicker} className="relative">
+          <TouchableOpacity onPress={() => {}} className="relative">
             <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gray-200">
               {avatarUri ? (
                 <Image source={{ uri: avatarUri }} className="h-full w-full" resizeMode="cover" />
@@ -163,17 +163,17 @@ export default function EditProfileScreen() {
                 <Ionicons name="person" size={40} color="#9CA3AF" />
               )}
             </View>
-            <View className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-primary-500">
+            {/* <View className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-primary-500">
               <Ionicons name="camera" size={16} color="white" />
-            </View>
+            </View> */}
           </TouchableOpacity>
-          <Text className="mt-2 text-sm text-gray-600">Ketuk untuk mengubah foto</Text>
+          {/* <Text className="mt-2 text-sm text-gray-600">Ketuk untuk mengubah foto</Text> */}
         </View>
 
         {/* Form Fields */}
         <View className="space-y-6 px-4">
           {/* Full Name */}
-          <View>
+          <View className='mb-4'>
             <Text className="mb-2 font-medium text-gray-700">Nama Lengkap *</Text>
             <TextInput
               value={formData.full_name}
@@ -185,20 +185,21 @@ export default function EditProfileScreen() {
           </View>
 
           {/* Email */}
-          <View>
+          <View className='mb-4'>
             <Text className="mb-2 font-medium text-gray-700">Email *</Text>
             <TextInput
               value={formData.email}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, email: text }))}
               placeholder="Masukkan email"
-              className="rounded-xl border border-gray-300 px-4 py-3 text-gray-900"
+              className="rounded-xl border border-gray-300 px-4 py-3 text-gray-900 bg-gray-100"
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={false}
             />
           </View>
 
           {/* Phone */}
-          <View>
+          <View className='mb-4'>
             <Text className="mb-2 font-medium text-gray-700">Nomor Telepon</Text>
             <TextInput
               value={formData.phone}

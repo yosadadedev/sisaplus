@@ -141,7 +141,7 @@ export default function App() {
   if (loading || hasSeenOnboarding === null) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <Ionicons name="restaurant" size={64} color="#0ea5e9" />
+        <Ionicons name="restaurant" size={64} color="#dc2626" />
         <Text className="mt-4 text-xl font-bold text-gray-800">Sisa Plus</Text>
         <Text className="mt-2 text-gray-600">Memuat aplikasi...</Text>
       </View>
