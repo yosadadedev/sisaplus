@@ -80,6 +80,7 @@ export default function AddFoodScreen() {
   const [imageLoading, setImageLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Request permissions on component mount
@@ -275,7 +276,23 @@ export default function AddFoodScreen() {
     }
   };
 
+  const clearFormData = () => {
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      quantity: '',
+      location: '',
+      expired_at: null,
+      price_type: 'free',
+      price: '',
+      image_urls: [],
+    });
+  };
+
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    
     if (!validateForm()) {
       Alert.alert('Form Tidak Valid', 'Silakan periksa kembali data yang Anda masukkan.', [
         { text: 'OK' },
@@ -288,6 +305,7 @@ export default function AddFoodScreen() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const { user } = useAuthStore.getState();
       if (!user) {
@@ -341,6 +359,9 @@ export default function AddFoodScreen() {
 
       await createFood(foodData);
 
+      // Clear form data after successful submission
+      clearFormData();
+
       Alert.alert(
         'Berhasil!',
         'Makanan berhasil ditambahkan dan akan segera tersedia untuk dipesan.',
@@ -348,8 +369,8 @@ export default function AddFoodScreen() {
           {
             text: 'OK',
             onPress: () => {
-              // Navigate to MyOrders screen
-              navigation.navigate('MyOrders');
+              // Go back to previous screen
+              navigation.goBack();
             },
           },
         ]
@@ -357,6 +378,8 @@ export default function AddFoodScreen() {
     } catch (error) {
       console.error('Submit error:', error);
       Alert.alert('Error', 'Terjadi kesalahan. Silakan coba lagi.', [{ text: 'OK' }]);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -668,9 +691,11 @@ export default function AddFoodScreen() {
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
-          disabled={isLoading}
-          className="mb-8 items-center justify-center rounded-xl bg-primary-500 py-4">
-          {isLoading ? (
+          disabled={isLoading || isSubmitting}
+          className={`mb-8 items-center justify-center rounded-xl py-4 ${
+            isLoading || isSubmitting ? 'bg-gray-400' : 'bg-primary-500'
+          }`}>
+          {isLoading || isSubmitting ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
             <Text className="text-lg font-semibold text-white">Tambah Makanan</Text>

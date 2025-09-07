@@ -231,7 +231,6 @@ export default function MyOrdersScreen() {
             {/* Pesanan & Booking Section */}
             {(myDonations.length > 0 || incomingBookings.length > 0) && (
               <View className="mb-4">
-                <Text className="mb-3 text-lg font-bold text-gray-900">Pesanan & Booking</Text>
                 
                 {/* My Donations Items - hanya yang belum ada booking */}
                 {myDonations.filter(donation => 
