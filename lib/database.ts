@@ -2,7 +2,6 @@ import * as SQLite from 'expo-sqlite';
 
 // Database configuration
 const DATABASE_NAME = 'sisaplus.db';
-const DATABASE_VERSION = 1;
 
 // Open database
 export const db = SQLite.openDatabaseSync(DATABASE_NAME);

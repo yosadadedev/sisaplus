@@ -15,7 +15,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -59,7 +58,6 @@ const CATEGORIES = [
 
 export default function AddFoodScreen() {
   const navigation = useNavigation();
-  const { user } = useAuthStore();
   const { createFood, isLoading } = useFoodStore();
 
   const [formData, setFormData] = useState<FormData>({

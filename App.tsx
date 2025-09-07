@@ -4,9 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, Alert } from 'react-native';
+import { View, Text } from 'react-native';
 
-import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import './global.css';
 
@@ -24,7 +23,6 @@ import ProfileScreen from './screens/ProfileScreen';
 
 // Stores
 import { useAuthStore } from './store/authStore';
-import { useFoodStore } from './store/foodStore';
 
 // Configure notifications
 

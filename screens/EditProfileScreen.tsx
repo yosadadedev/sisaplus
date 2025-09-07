@@ -34,59 +34,59 @@ export default function EditProfileScreen() {
   });
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Error', 'Izin akses galeri diperlukan untuk mengubah foto profil');
-      return;
-    }
+  // const pickImage = async () => {
+  //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  //   if (status !== 'granted') {
+  //     Alert.alert('Error', 'Izin akses galeri diperlukan untuk mengubah foto profil');
+  //     return;
+  //   }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     allowsEditing: true,
+  //     aspect: [1, 1],
+  //     quality: 0.8,
+  //   });
 
-    if (!result.canceled) {
-      setAvatarUri(result.assets[0].uri);
-    }
-  };
+  //   if (!result.canceled) {
+  //     setAvatarUri(result.assets[0].uri);
+  //   }
+  // };
 
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Error', 'Izin akses kamera diperlukan untuk mengambil foto');
-      return;
-    }
+  // const takePhoto = async () => {
+  //   const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  //   if (status !== 'granted') {
+  //     Alert.alert('Error', 'Izin akses kamera diperlukan untuk mengambil foto');
+  //     return;
+  //   }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+  //   const result = await ImagePicker.launchCameraAsync({
+  //     allowsEditing: true,
+  //     aspect: [1, 1],
+  //     quality: 0.8,
+  //   });
 
-    if (!result.canceled) {
-      setAvatarUri(result.assets[0].uri);
-    }
-  };
+  //   if (!result.canceled) {
+  //     setAvatarUri(result.assets[0].uri);
+  //   }
+  // };
 
-  const showImagePicker = () => {
-    Alert.alert('Pilih Foto', 'Pilih sumber foto profil', [
-      {
-        text: 'Galeri',
-        onPress: pickImage,
-      },
-      {
-        text: 'Kamera',
-        onPress: takePhoto,
-      },
-      {
-        text: 'Batal',
-        style: 'cancel',
-      },
-    ]);
-  };
+  // const showImagePicker = () => {
+  //   Alert.alert('Pilih Foto', 'Pilih sumber foto profil', [
+  //     {
+  //       text: 'Galeri',
+  //       onPress: pickImage,
+  //     },
+  //     {
+  //       text: 'Kamera',
+  //       onPress: takePhoto,
+  //     },
+  //     {
+  //       text: 'Batal',
+  //       style: 'cancel',
+  //     },
+  //   ]);
+  // };
 
   const validateForm = () => {
     if (!formData.full_name.trim()) {
