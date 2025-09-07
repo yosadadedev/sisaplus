@@ -176,11 +176,13 @@ export default function LoginScreen({ navigation }: any) {
       />
 
       {/* Error Modal */}
-      <ErrorModal
-        visible={showErrorModal}
-        message={errorMessage}
-        onClose={() => setShowErrorModal(false)}
-      />
+      {showErrorModal &&
+        <ErrorModal
+          visible={showErrorModal}
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      }
     </SafeAreaView>
   );
 }

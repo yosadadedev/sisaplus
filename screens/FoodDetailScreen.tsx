@@ -252,7 +252,7 @@ export default function FoodDetailScreen() {
   const isExpired = food && new Date(food.expired_at) < new Date();
   const isOwner = food && user && food.donor_id === user.id;
   const hasActiveBooking = userBooking && ['pending', 'confirmed'].includes(userBooking.status);
-  const canBook = food && food.status === 'available' && !isExpired && !isOwner && !hasActiveBooking;
+  const canBook = food && food.status === 'available' && !isExpired && !isOwner && !hasActiveBooking && !userBooking;
 
   // Debug logging removed to prevent re-render
   
@@ -264,7 +264,7 @@ export default function FoodDetailScreen() {
       case 'pending':
         return isDonor ? 'Menunggu Konfirmasi Anda' : 'Menunggu Konfirmasi Donatur';
       case 'confirmed':
-        return isDonor ? 'Siap Diambil' : 'Pesanan Dikonfirmasi';
+        return isDonor ? 'Siap Diambil' : 'Pesanan Dikonfirmasi Donatur';
       case 'completed':
         return 'Pesanan Selesai';
       case 'cancelled':
