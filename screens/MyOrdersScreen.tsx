@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { useFoodStore } from '../store/foodStore';
 import { useAuthStore } from '../store/authStore';
+import { userService } from '../services/firebaseService';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { MyOrdersScreenNavigationProp, MainTabParamList } from '../types/navigation';
@@ -29,6 +30,36 @@ export default function MyOrdersScreen() {
 
   const [activeTab, setActiveTab] = useState<TabType>(route.params?.initialTab || 'donations');
   const [refreshing, setRefreshing] = useState(false);
+  const [userNames, setUserNames] = useState<{[key: string]: string}>({});
+
+  // Function to fetch user name by ID
+  const fetchUserName = async (userId: string) => {
+    if (userNames[userId] || userId === user?.id) return;
+    
+    try {
+      const userData = await userService.getUserById(userId);
+      if (userData) {
+        setUserNames(prev => ({
+          ...prev,
+          [userId]: userData.name || `User ${userId.slice(-6)}`
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user name:', error);
+    }
+  };
+
+  // Load user names for bookings
+  useEffect(() => {
+    const allBookings = [...incomingBookings, ...userBookings];
+    const uniqueUserIds = [...new Set(allBookings.map(booking => booking.user_id))];
+    
+    uniqueUserIds.forEach(userId => {
+      if (userId !== user?.id && !userNames[userId]) {
+        fetchUserName(userId);
+      }
+    });
+  }, [incomingBookings, userBookings, user?.id]);
 
   useEffect(() => {
     if (user?.id && isFocused) {
@@ -279,9 +310,6 @@ export default function MyOrdersScreen() {
                           <Text className="text-base font-semibold text-gray-900">
                             {donation.title}
                           </Text>
-                          <Text className="mt-1 text-sm text-gray-600">
-                            Donasi Saya - Belum ada booking
-                          </Text>
                           <View className="mt-1 flex-row items-center">
                             <View className={`mr-2 h-2 w-2 rounded-full ${
                               !isExpired ? 'bg-green-500' : 'bg-red-500'
@@ -348,7 +376,7 @@ export default function MyOrdersScreen() {
                             {booking.food?.title || 'Makanan tidak ditemukan'}
                           </Text>
                           <Text className="mt-1 text-sm text-gray-600">
-                            Pembeli: Pembeli #{booking.user_id.slice(-6)}
+                            Pembeli: {booking.user_id === user?.id ? 'Anda' : (userNames[booking.user_id] || `Pembeli ${booking.user_id.slice(-6)}`)}
                           </Text>
                           <View className="mt-1 flex-row items-center">
                             <View className={`mr-2 h-2 w-2 rounded-full ${
