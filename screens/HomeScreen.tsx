@@ -7,7 +7,6 @@ import {
   Image,
   RefreshControl,
   TextInput,
-  Alert,
   ActivityIndicator,
   Linking,
   Platform,
@@ -16,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFoodStore } from '../store/foodStore';
 import { useAuthStore } from '../store/authStore';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { HomeScreenNavigationProp } from '../types/navigation';
@@ -183,18 +182,19 @@ export default function HomeScreen() {
     isLoading,
     loadFoods,
     setCategory,
-    getCategories,
   } = useFoodStore();
 
   const [searchText, setSearchText] = useState('');
   // Use store's selectedCategory instead of local state
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     if (user) {
       loadFoods();
     }
-  }, [user, loadFoods]);
+  }, [user, loadFoods])
+);
 
   const handleSearch = useCallback(() => {
     loadFoods(undefined, searchText);

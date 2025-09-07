@@ -741,7 +741,7 @@ export default function FoodDetailScreen() {
               <TouchableOpacity
                 onPress={handleBookFood}
                 disabled={bookingLoading}
-                className="flex-1 items-center justify-center rounded-2xl bg-blue-500 py-4">
+                className="flex-1 items-center justify-center rounded-2xl bg-green-500 py-4">
                 {bookingLoading ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
