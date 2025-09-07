@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { RootStackNavigationProp } from '../types/navigation';
 import { useFoodStore } from '../store/foodStore';
 import { useAuthStore } from '../store/authStore';
 import { Food } from '../lib/database';
@@ -27,7 +28,7 @@ interface RouteParams {
 
 export default function FoodDetailScreen() {
   const route = useRoute();
-  const navigation = useNavigation();
+  const navigation = useNavigation<RootStackNavigationProp>();
   const { foodId } = route.params as RouteParams;
   const { user } = useAuthStore();
   const { foods, bookFood, isLoading, userBookings, incomingBookings, loadIncomingBookings } = useFoodStore();
@@ -106,7 +107,7 @@ export default function FoodDetailScreen() {
           text: 'OK',
           onPress: () => {
             setShowBookingModal(false);
-            navigation.goBack();
+            navigation.navigate('MainTabs', { screen: 'MyOrders', params: { initialTab: 'orders' } });
           },
         },
       ]);
@@ -264,7 +265,7 @@ export default function FoodDetailScreen() {
       case 'pending':
         return isDonor ? 'Menunggu Konfirmasi Anda' : 'Menunggu Konfirmasi Donatur';
       case 'confirmed':
-        return isDonor ? 'Siap Diambil' : 'Pesanan Dikonfirmasi Donatur';
+        return isDonor ? 'Siap Diambil' : 'Pesanan Dikonfirmasi Donatur:\nSelematat mengambil!';
       case 'completed':
         return 'Pesanan Selesai';
       case 'cancelled':

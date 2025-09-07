@@ -19,6 +19,32 @@ import { db } from '../config/firebase';
 import { FirebaseUser, FirebaseFood, FirebaseBooking, COLLECTIONS } from '../types/firebase';
 import { Food, Booking, BookingWithFood } from '../lib/database';
 
+// Helper function to add timeout to Firestore operations
+const withTimeout = <T>(promise: Promise<T>, timeoutMs: number = 8000): Promise<T> => {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('Firestore operation timeout after ' + (timeoutMs / 1000) + ' seconds')), timeoutMs);
+  });
+  
+  return Promise.race([promise, timeoutPromise]);
+};
+
+// Helper function to handle Firestore errors
+const handleFirestoreError = (error: any, operation: string) => {
+  console.error(`Error in ${operation}:`, error);
+  
+  // Handle specific Firebase errors
+  if (error.code === 'unavailable' || error.message?.includes('backend')) {
+    throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi.');
+  }
+  
+  if (error.message?.includes('timeout')) {
+    throw new Error('Koneksi timeout. Periksa koneksi internet Anda dan coba lagi.');
+  }
+  
+  // Re-throw original error if not network related
+  throw error;
+};
+
 // Conversion functions between Firebase and local types
 export const convertFirebaseFoodToLocal = (firebaseFood: FirebaseFood, userData?: FirebaseUser): Food => {
   return {
@@ -106,46 +132,66 @@ export const userService = {
     userId?: string
   ): Promise<string> {
     const now = Timestamp.now();
-    
-    if (userId) {
-      // Use setDoc with specific document ID (Firebase Auth UID)
-      const docRef = doc(db, COLLECTIONS.USERS, userId);
-      await setDoc(docRef, {
-        ...userData,
-        createdAt: now,
-        updatedAt: now,
-      });
-      return userId;
-    } else {
-      // Fallback to auto-generated ID
-      const docRef = await addDoc(collection(db, COLLECTIONS.USERS), {
-        ...userData,
-        createdAt: now,
-        updatedAt: now,
-      });
-      return docRef.id;
+       
+    try {
+      if (userId) {
+        // Use setDoc with specific document ID (Firebase Auth UID)
+        const docRef = doc(db, COLLECTIONS.USERS, userId);
+        
+        await withTimeout(setDoc(docRef, {
+          ...userData,
+          createdAt: now,
+          updatedAt: now,
+        }));
+        
+        return userId;
+      } else {
+        // Fallback to auto-generated ID
+        const docRef = await withTimeout(addDoc(collection(db, COLLECTIONS.USERS), {
+          ...userData,
+          createdAt: now,
+          updatedAt: now,
+        }));
+        
+        return docRef.id;
+      }
+    } catch (error: any) {
+      handleFirestoreError(error, 'createUser');
+      throw error; // This line will never be reached due to handleFirestoreError throwing
     }
   },
 
   // Get user by ID
   async getUserById(userId: string): Promise<FirebaseUser | null> {
-    const docRef = doc(db, COLLECTIONS.USERS, userId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as FirebaseUser;
+    try {
+      const docRef = doc(db, COLLECTIONS.USERS, userId);
+      const docSnap = await withTimeout(getDoc(docRef));
+      
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as FirebaseUser;
+      }
+      return null;
+    } catch (error: any) {
+      handleFirestoreError(error, 'getUserById');
+      return null; // This line will never be reached due to handleFirestoreError throwing
     }
-    return null;
   },
 
   // Get user by email
   async getUserByEmail(email: string): Promise<FirebaseUser | null> {
-    const q = query(collection(db, COLLECTIONS.USERS), where('email', '==', email));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const doc = querySnapshot.docs[0];
-      return { id: doc.id, ...doc.data() } as FirebaseUser;
+    try {
+      const q = query(collection(db, COLLECTIONS.USERS), where('email', '==', email));
+      const querySnapshot = await withTimeout(getDocs(q));
+      
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as FirebaseUser;
+      }
+      return null;
+    } catch (error: any) {
+      handleFirestoreError(error, 'getUserByEmail');
+      return null; // This line will never be reached due to handleFirestoreError throwing
     }
-    return null;
   },
 
   // Update user

@@ -41,20 +41,62 @@ export const firebaseAuth = {
       });
 
       // Create user document in Firestore with Firebase Auth UID
-      await userService.createUser({
-        email,
-        name,
-        phone: phone || '',
-      }, user.uid);
+      // Add retry mechanism for Firestore operations
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          await userService.createUser({
+            email,
+            name,
+            phone: phone || '',
+          }, user.uid);
+          break; // Success, exit retry loop
+        } catch (firestoreError: any) {
+          retryCount++;
+          console.log(`Firestore operation failed, retry ${retryCount}/${maxRetries}:`, firestoreError.message);
+          
+          if (retryCount >= maxRetries) {
+            // If all retries failed, clean up the Auth user and throw error
+            try {
+              await user.delete();
+            } catch (deleteError) {
+              console.error('Failed to delete auth user after Firestore failure:', deleteError);
+            }
+            throw firestoreError;
+          }
+          
+          // Wait before retry (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        }
+      }
 
       return {
         success: true,
         user,
       };
     } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      // Provide user-friendly error messages
+      let errorMessage = error.message;
+      
+      if (error.message?.includes('timeout') || error.message?.includes('backend')) {
+        errorMessage = 'Koneksi timeout. Periksa koneksi internet Anda dan coba lagi.';
+      } else if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Email sudah terdaftar. Silakan gunakan email lain atau login.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password terlalu lemah. Gunakan minimal 6 karakter.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Format email tidak valid.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
+      }
+      
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   },

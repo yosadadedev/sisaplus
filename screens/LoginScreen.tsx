@@ -34,7 +34,9 @@ export default function LoginScreen({ navigation }: any) {
   }, [initialized, initialize]);
 
   const handleEmailSignIn = async () => {
+    console.log('handleEmailSignIn');
     if (!email.trim() || !password.trim()) {
+      console.log('Email or password is empty');
       setErrorMessage('Silakan masukkan email dan password.');
       setShowErrorModal(true);
       return;
@@ -42,7 +44,7 @@ export default function LoginScreen({ navigation }: any) {
 
     try {
       const { error } = await signInWithEmail(email.trim(), password);
-
+      console.log('Login error:', error);
       if (error) {
         setErrorMessage(error.message || 'Email atau password salah. Silakan coba lagi.');
         setShowErrorModal(true);
@@ -50,7 +52,7 @@ export default function LoginScreen({ navigation }: any) {
         setShowSuccessModal(true);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error catch:', error);
       setErrorMessage('Terjadi kesalahan. Silakan coba lagi.');
       setShowErrorModal(true);
     }

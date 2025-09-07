@@ -129,7 +129,7 @@ const FoodItem: React.FC<FoodItemProps> = ({ item, onPress }) => {
             className="mb-2 flex-row items-center">
             <Ionicons name="location" size={14} color="#ef4444" />
             <Text className="ml-1 flex-1 text-sm text-primary-600 underline" numberOfLines={1}>
-              {item.location}
+              {item.location || 'Lokasi tidak tersedia'}
             </Text>
             {item.distance_km && (
               <Text className="text-sm font-medium text-primary-600">
