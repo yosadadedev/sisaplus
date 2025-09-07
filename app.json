@@ -13,7 +13,7 @@
       "expo-image-picker"
     ],
     "orientation": "portrait",
-    "icon": "./assets/logo.svg",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
